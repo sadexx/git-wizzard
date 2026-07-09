@@ -1,0 +1,21 @@
+{
+  "name": "git-assistant",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@10.9.7",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsc-alias": "^1.9.0",
+    "typescript": "^7.0.2"
+  }
+}
