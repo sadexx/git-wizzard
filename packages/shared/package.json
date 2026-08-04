@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "tsc && tsc-alias --resolve-full-paths",
-    "test": "npm run build && node --test dist",
+    "test": "npm run build && node --test \"dist/**/*.test.js\"",
     "clean": "rm -rf dist"
   },
   "dependencies": {
