@@ -1,5 +1,5 @@
 {
-  "name": "@git-assistant/shared",
+  "name": "@git-assistant/server",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,19 +7,18 @@
     "node": ">=22"
   },
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
   "scripts": {
     "build": "tsc && tsc-alias",
     "test": "npm run build && node --test \"dist/**/*.test.js\"",
+    "inspect": "npm run build && npx @modelcontextprotocol/inspector node dist/index.js",
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "zod": "^4.4.3"
+    "@git-assistant/shared": "*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "simple-git": "^3.36.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0"
   }
 }
