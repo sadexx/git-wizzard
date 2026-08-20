@@ -1,21 +1,15 @@
 import { z } from 'zod';
 import { type Result, ok, err } from '@/result.js';
 
-export type AuthErrorReason =
-  'missing_credentials' | 'invalid_api_key' | 'unsupported_provider' | 'config_read_failed' | 'config_write_failed';
-
-export type GitErrorReason =
-  'not_a_repository' | 'command_failed' | 'parse_failed' | 'nothing_to_commit' | 'merge_conflict';
-
-export type ProviderErrorReason =
-  'unauthorized' | 'rate_limited' | 'request_failed' | 'empty_completion' | 'invalid_response';
-
 export interface AuthError {
   readonly kind: 'AuthError';
   readonly reason: AuthErrorReason;
   readonly message: string;
   readonly cause?: unknown;
 }
+
+export type AuthErrorReason =
+  'missing_credentials' | 'invalid_api_key' | 'unsupported_provider' | 'config_read_failed' | 'config_write_failed';
 
 export interface GitError {
   readonly kind: 'GitError';
@@ -24,6 +18,9 @@ export interface GitError {
   readonly cause?: unknown;
 }
 
+export type GitErrorReason =
+  'not_a_repository' | 'command_failed' | 'parse_failed' | 'nothing_to_commit' | 'merge_conflict';
+
 export interface ProviderError {
   readonly kind: 'ProviderError';
   readonly reason: ProviderErrorReason;
@@ -31,10 +28,8 @@ export interface ProviderError {
   readonly cause?: unknown;
 }
 
-export interface ValidationIssue {
-  readonly path: string;
-  readonly message: string;
-}
+export type ProviderErrorReason =
+  'unauthorized' | 'rate_limited' | 'request_failed' | 'empty_completion' | 'invalid_response';
 
 export interface ValidationError {
   readonly kind: 'ValidationError';
@@ -43,6 +38,12 @@ export interface ValidationError {
   readonly cause?: unknown;
 }
 
+export interface ValidationIssue {
+  readonly path: string;
+  readonly message: string;
+}
+
+const APP_ERROR_KINDS: readonly AppError['kind'][] = ['AuthError', 'GitError', 'ProviderError', 'ValidationError'];
 export type AppError = AuthError | GitError | ProviderError | ValidationError;
 
 // `cause` is conditionally spread rather than always assigned: exactOptionalPropertyTypes
@@ -74,8 +75,6 @@ export function parseWithSchema<S extends z.ZodType>(schema: S, data: unknown): 
   const parsed = schema.safeParse(data);
   return parsed.success ? ok(parsed.data) : err(validationError(parsed.error));
 }
-
-const APP_ERROR_KINDS: readonly AppError['kind'][] = ['AuthError', 'GitError', 'ProviderError', 'ValidationError'];
 
 export function isAppError(value: unknown): value is AppError {
   if (typeof value !== 'object' || value === null) {
