@@ -1,0 +1,20 @@
+{
+  "name": "@git-assistant/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc && tsc-alias",
+    "test": "npm run build && node --test \"dist/**/*.test.js\"",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@git-assistant/shared": "*",
+    "@google/genai": "^2.10.0",
+    "openai": "^6.45.0"
+  }
+}

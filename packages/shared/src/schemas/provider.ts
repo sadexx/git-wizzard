@@ -52,3 +52,41 @@ export const completionResponseSchema = z
   })
   .strict();
 export type CompletionResponse = z.infer<typeof completionResponseSchema>;
+
+/** Minimal subset of the OpenAI chat completion response this app consumes. */
+export const openAiChatCompletionSchema = z
+  .object({
+    model: z.string().optional(),
+    choices: z
+      .array(
+        z
+          .object({
+            message: z.object({ content: z.string().nullable() }).strict(),
+            finish_reason: z.string().nullable().optional(),
+          })
+          .strict(),
+      )
+      .min(1),
+  })
+  .strict();
+
+/** Minimal subset of the Gemini generateContent response this app consumes. */
+export const geminiGenerateContentSchema = z
+  .object({
+    text: z.string().optional(),
+    modelVersion: z.string().optional(),
+    candidates: z
+      .array(
+        z
+          .object({
+            finishReason: z.string().optional(),
+            content: z
+              .object({ parts: z.array(z.object({ text: z.string().optional() })).optional() })
+              .strict()
+              .optional(),
+          })
+          .strict(),
+      )
+      .optional(),
+  })
+  .strict();
