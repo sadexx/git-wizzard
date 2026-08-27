@@ -17,8 +17,8 @@ import { GeminiAdapter } from '@/auth/providers/gemini.js';
 import { loadConfig, saveConfig } from '@/auth/config.js';
 
 const DEFAULT_MODELS: Record<ProviderName, string> = {
-  openai: 'gpt-4.1-mini',
-  gemini: 'gemini-2.5-flash',
+  openai: 'gpt-5.4-mini',
+  gemini: 'gemini-3.6-flash',
 };
 
 export interface AuthDeps {

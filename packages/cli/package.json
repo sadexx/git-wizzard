@@ -14,7 +14,9 @@
   },
   "dependencies": {
     "@git-assistant/shared": "*",
+    "@git-assistant/server": "*",
     "@google/genai": "^2.10.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "openai": "^6.45.0"
   }
 }

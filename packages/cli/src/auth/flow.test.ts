@@ -45,7 +45,7 @@ function fakeAdapter(config: ProviderConfig): ProviderAdapter {
 test('readEnvConfig infers provider from a single key', () => {
   const result = readEnvConfig({ ...emptyEnv, openaiKey: 'k' });
   assert.equal(result.ok, true);
-  if (result.ok) assert.deepEqual(result.value, { provider: 'openai', apiKey: 'k', model: 'gpt-4.1-mini' });
+  if (result.ok) assert.deepEqual(result.value, { provider: 'openai', apiKey: 'k', model: 'gpt-5.4-mini' });
 });
 
 test('readEnvConfig returns null when ambiguous', () => {

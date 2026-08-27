@@ -24,10 +24,10 @@ test('toGeminiInput omits system instruction when none present', () => {
 
 test('normalizeGeminiResponse uses aggregated text and maps MAX_TOKENS to length', () => {
   const result = normalizeGeminiResponse(
-    { text: 'done', modelVersion: 'gemini-2.5-flash', candidates: [{ finishReason: 'MAX_TOKENS' }] },
+    { text: 'done', modelVersion: 'gemini-3.6-flash', candidates: [{ finishReason: 'MAX_TOKENS' }] },
     'fb',
   );
-  assert.deepEqual(result, { ok: true, value: { text: 'done', model: 'gemini-2.5-flash', finishReason: 'length' } });
+  assert.deepEqual(result, { ok: true, value: { text: 'done', model: 'gemini-3.6-flash', finishReason: 'length' } });
 });
 
 test('normalizeGeminiResponse falls back to candidate parts and safety maps to content_filter', () => {

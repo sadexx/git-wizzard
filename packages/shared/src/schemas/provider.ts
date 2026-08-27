@@ -71,22 +71,19 @@ export const openAiChatCompletionSchema = z
   .strict();
 
 /** Minimal subset of the Gemini generateContent response this app consumes. */
-export const geminiGenerateContentSchema = z
-  .object({
-    text: z.string().optional(),
-    modelVersion: z.string().optional(),
-    candidates: z
-      .array(
-        z
-          .object({
-            finishReason: z.string().optional(),
-            content: z
-              .object({ parts: z.array(z.object({ text: z.string().optional() })).optional() })
-              .strict()
-              .optional(),
-          })
-          .strict(),
-      )
-      .optional(),
-  })
-  .strict();
+export const geminiGenerateContentSchema = z.object({
+  text: z.string().optional(),
+  modelVersion: z.string().optional(),
+  candidates: z
+    .array(
+      z.object({
+        finishReason: z.string().optional(),
+        content: z
+          .object({ parts: z.array(z.object({ text: z.string().optional() })).optional() })
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    )
+    .optional(),
+});

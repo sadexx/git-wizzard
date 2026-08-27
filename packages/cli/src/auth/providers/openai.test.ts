@@ -4,10 +4,10 @@ import { normalizeOpenAiResponse } from '@/auth/providers/openai.js';
 
 test('normalizeOpenAiResponse maps content and finish_reason', () => {
   const result = normalizeOpenAiResponse(
-    { model: 'gpt-4.1-mini', choices: [{ message: { content: 'hello' }, finish_reason: 'stop' }] },
+    { model: 'gpt-5.4-mini', choices: [{ message: { content: 'hello' }, finish_reason: 'stop' }] },
     'fallback',
   );
-  assert.deepEqual(result, { ok: true, value: { text: 'hello', model: 'gpt-4.1-mini', finishReason: 'stop' } });
+  assert.deepEqual(result, { ok: true, value: { text: 'hello', model: 'gpt-5.4-mini', finishReason: 'stop' } });
 });
 
 test('normalizeOpenAiResponse maps unknown finish_reason to other and falls back on model', () => {

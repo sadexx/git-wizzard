@@ -18,7 +18,7 @@ test('loadConfig returns null when the file is absent', async () => {
 
 test('saveConfig then loadConfig round-trips', async () => {
   const dir = await tempDir();
-  const config: PersistedConfig = { version: 1, provider: 'openai', apiKey: 'sk-test', model: 'gpt-4.1-mini' };
+  const config: PersistedConfig = { version: 1, provider: 'openai', apiKey: 'sk-test', model: 'gpt-5.4-mini' };
   const saved = await saveConfig(config, dir);
   assert.equal(saved.ok, true);
   const loaded = await loadConfig(dir);
