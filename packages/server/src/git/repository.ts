@@ -13,6 +13,8 @@ import {
   gitStatusSchema,
   gitDiffSchema,
   commitResultSchema,
+  type CreateBranchOutput,
+  createBranchOutputSchema,
 } from '@git-assistant/shared';
 import { parseStatus, parseNumstat } from '@/git/parse.js';
 
@@ -95,6 +97,15 @@ export class GitRepository {
       branch,
       summary: message.split('\n')[0] ?? message,
     });
+  }
+
+  public async createBranch(name: string): Promise<Result<CreateBranchOutput, RepoError>> {
+    try {
+      await this.git.checkoutLocalBranch(name);
+    } catch (cause) {
+      return err(gitError('command_failed', `Failed to create branch ${name}`, cause));
+    }
+    return parseWithSchema(createBranchOutputSchema, { branch: name, created: true });
   }
 
   get directory(): string {

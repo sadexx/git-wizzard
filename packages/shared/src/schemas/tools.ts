@@ -7,6 +7,7 @@ export const toolNameSchema = z.enum([
   'suggest_branch_name',
   'generate_commit_message',
   'create_commit',
+  'create_branch',
 ]);
 export type ToolName = z.infer<typeof toolNameSchema>;
 
@@ -57,7 +58,6 @@ export const generateCommitMessageOutputSchema = z
   .strict();
 export type GenerateCommitMessageOutput = z.infer<typeof generateCommitMessageOutputSchema>;
 
-// The only mutating tool: requires an explicit message, never derives one implicitly.
 export const createCommitInputSchema = z
   .object({
     repoPath: z.string().min(1).optional(),
@@ -67,3 +67,14 @@ export const createCommitInputSchema = z
 export type CreateCommitInput = z.infer<typeof createCommitInputSchema>;
 export const createCommitOutputSchema = commitResultSchema;
 export type CreateCommitOutput = z.infer<typeof createCommitOutputSchema>;
+
+export const createBranchInputSchema = z
+  .object({
+    repoPath: z.string().min(1).optional(),
+    name: z.string().min(1),
+  })
+  .strict();
+export type CreateBranchInput = z.infer<typeof createBranchInputSchema>;
+
+export const createBranchOutputSchema = z.object({ branch: z.string().min(1), created: z.boolean() });
+export type CreateBranchOutput = z.infer<typeof createBranchOutputSchema>;

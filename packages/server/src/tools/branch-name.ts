@@ -23,6 +23,7 @@ export function registerBranchNameTool(server: McpServer): void {
     async (input) => {
       const repo = await GitRepository.open(input.repoPath);
       if (!repo.ok) return toolErr(repo.error);
+
       const diff = await repo.value.diff(false);
       if (!diff.ok) return toolErr(diff.error);
 

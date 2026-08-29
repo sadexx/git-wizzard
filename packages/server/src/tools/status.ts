@@ -16,6 +16,7 @@ export function registerStatusTool(server: McpServer): void {
     async (input) => {
       const repo = await GitRepository.open(input.repoPath);
       if (!repo.ok) return toolErr(repo.error);
+
       const status = await repo.value.status();
       return fromResult(
         status,

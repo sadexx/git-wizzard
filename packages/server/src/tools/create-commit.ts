@@ -16,6 +16,7 @@ export function registerCreateCommitTool(server: McpServer): void {
     async (input) => {
       const repo = await GitRepository.open(input.repoPath);
       if (!repo.ok) return toolErr(repo.error);
+
       const result = await repo.value.createCommit(input.message);
       return fromResult(result, (c) => `Commited ${c.sha.slice(0, 8)} on ${c.branch}: ${c.summary}`);
     },

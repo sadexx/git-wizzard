@@ -24,6 +24,7 @@ export function registerCommitMessageTool(server: McpServer): void {
     async (input) => {
       const repo = await GitRepository.open(input.repoPath);
       if (!repo.ok) return toolErr(repo.error);
+
       const diff = await repo.value.diff(true);
       if (!diff.ok) return toolErr(diff.error);
       if (diff.value.files.length === 0) {

@@ -7,6 +7,7 @@ import { registerDiffTool } from '@/tools/diff.js';
 import { registerBranchNameTool } from '@/tools/branch-name.js';
 import { registerCommitMessageTool } from '@/tools/commit-message.js';
 import { registerCreateCommitTool } from '@/tools/create-commit.js';
+import { registerCreateBranchTool } from './tools/create-branch.js';
 
 export function createServer(): McpServer {
   const server = new McpServer({ name: 'git-assistant-server', version: '0.0.0' }, { capabilities: { tools: {} } });
@@ -15,6 +16,7 @@ export function createServer(): McpServer {
   registerBranchNameTool(server);
   registerCommitMessageTool(server);
   registerCreateCommitTool(server);
+  registerCreateBranchTool(server);
   return server;
 }
 

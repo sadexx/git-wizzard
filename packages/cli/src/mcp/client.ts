@@ -3,6 +3,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { CreateMessageRequestSchema, type CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import {
+  createBranchOutputSchema,
   createCommitOutputSchema,
   err,
   generateCommitMessageOutputSchema,
@@ -14,6 +15,7 @@ import {
   suggestBranchNameOutputSchema,
   type BranchType,
   type CommitResult,
+  type CreateBranchOutput,
   type GenerateCommitMessageOutput,
   type GitDiff,
   type GitStatus,
@@ -32,6 +34,7 @@ export interface GitAssistantClient {
   suggestBranchName(options?: { type: BranchType; repoPath?: string }): Promise<Result<string[], ClientError>>;
   generateCommitMessage(repoPath?: string): Promise<Result<GenerateCommitMessageOutput, ClientError>>;
   createCommit(options: { message: string; repoPath?: string }): Promise<Result<CommitResult, ClientError>>;
+  createBranch(options: { name: string; repoPath?: string }): Promise<Result<CreateBranchOutput, ClientError>>;
   close(): Promise<void>;
 }
 
@@ -119,6 +122,17 @@ class StdioGitAssistantClient implements GitAssistantClient {
 
     const raw = await this.rawCall('create_commit', args);
     return raw.ok ? parseWithSchema(createCommitOutputSchema, raw.value) : raw;
+  }
+
+  public async createBranch(options: {
+    name: string;
+    repoPath?: string;
+  }): Promise<Result<CreateBranchOutput, ClientError>> {
+    const args: Record<string, unknown> = { name: options.name };
+    if (options.repoPath !== undefined) args['repoPath'] = options.repoPath;
+
+    const raw = await this.rawCall('create_branch', args);
+    return raw.ok ? parseWithSchema(createBranchOutputSchema, raw.value) : raw;
   }
 
   public async close(): Promise<void> {

@@ -16,6 +16,7 @@ export function registerDiffTool(server: McpServer): void {
     async (input) => {
       const repo = await GitRepository.open(input.repoPath);
       if (!repo.ok) return toolErr(repo.error);
+
       const diff = await repo.value.diff(input.staged ?? false);
       return fromResult(
         diff,

@@ -46,6 +46,7 @@ export interface Prompter {
 export interface AuthOptions {
   readonly validate?: boolean;
   readonly forceInteractive?: boolean;
+  readonly allowInteractive?: boolean;
 }
 
 /** Build a ProviderConfig from the environment or null when the env doesn't specify one. */
@@ -99,7 +100,7 @@ export async function runAuthFlow(
     }
   }
 
-  if (!deps.env.isTty) {
+  if (!deps.env.isTty || options.allowInteractive === false) {
     return err(
       authError(
         'missing_credentials',
