@@ -31,7 +31,7 @@ export type ClientError = ProviderError | ValidationError;
 export interface GitAssistantClient {
   getStatus(repoPath?: string): Promise<Result<GitStatus, ClientError>>;
   getDiff(options?: { staged?: boolean; repoPath?: string }): Promise<Result<GitDiff, ClientError>>;
-  suggestBranchName(options?: { type: BranchType; repoPath?: string }): Promise<Result<string[], ClientError>>;
+  suggestBranchName(options?: { type?: BranchType; repoPath?: string }): Promise<Result<string[], ClientError>>;
   generateCommitMessage(repoPath?: string): Promise<Result<GenerateCommitMessageOutput, ClientError>>;
   createCommit(options: { message: string; repoPath?: string }): Promise<Result<CommitResult, ClientError>>;
   createBranch(options: { name: string; repoPath?: string }): Promise<Result<CreateBranchOutput, ClientError>>;

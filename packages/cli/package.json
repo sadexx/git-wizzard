@@ -7,16 +7,20 @@
     "node": ">=22"
   },
   "main": "./dist/index.js",
+  "bin": {
+    "git-assistant": "./dist/index.js"
+  },
   "scripts": {
     "build": "tsc && tsc-alias",
     "test": "npm run build && node --test \"dist/**/*.test.js\"",
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@git-assistant/shared": "*",
     "@git-assistant/server": "*",
+    "@git-assistant/shared": "*",
     "@google/genai": "^2.10.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "commander": "^15.0.0",
     "openai": "^6.45.0"
   }
 }
