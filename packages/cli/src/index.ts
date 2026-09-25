@@ -5,23 +5,34 @@ import { registerStatusCommand } from '@/commands/status.js';
 import { registerDiffCommand } from '@/commands/diff.js';
 import { registerBranchCommand } from '@/commands/branch.js';
 import { registerCommitCommand } from '@/commands/commit.js';
+import { startInteractiveUi } from '@/ui/App.js';
 
-const program = new Command();
-program
-  .name('git-assistant')
-  .description('AI-assisted git helper (status, diff, branch, commit)')
-  .version('0.0.0')
-  .showHelpAfterError();
+function buildProgram(): Command {
+  const program = new Command();
+  program
+    .name('git-assistant')
+    .description('AI-assisted git helper (status, diff, branch, commit)')
+    .version('0.0.0')
+    .showHelpAfterError();
 
-registerAuthCommand(program);
-registerStatusCommand(program);
-registerDiffCommand(program);
-registerBranchCommand(program);
-registerCommitCommand(program);
+  registerAuthCommand(program);
+  registerStatusCommand(program);
+  registerDiffCommand(program);
+  registerBranchCommand(program);
+  registerCommitCommand(program);
 
-try {
-  await program.parseAsync(process.argv);
-} catch (error: unknown) {
+  return program;
+}
+
+async function main(): Promise<void> {
+  if (process.argv.length <= 2) {
+    await startInteractiveUi();
+    return;
+  }
+  await buildProgram().parseAsync(process.argv);
+}
+
+main().catch((error: unknown) => {
   process.stderr.write(`Fatal: ${error instanceof Error ? error.message : String(error)}\n`);
   process.exitCode = 1;
-}
+});
