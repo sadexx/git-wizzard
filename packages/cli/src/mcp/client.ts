@@ -159,7 +159,7 @@ class StdioGitAssistantClient implements GitAssistantClient {
 }
 
 function textContent(result: CallToolResult): string | undefined {
-  const first = result.content[0];
+  const [first] = result.content;
   return first !== undefined && first.type === 'text' ? first.text : undefined;
 }
 

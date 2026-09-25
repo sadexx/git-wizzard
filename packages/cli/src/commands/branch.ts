@@ -18,7 +18,7 @@ export function registerBranchCommand(program: Command): void {
           return;
         }
 
-        const first = suggestions.value[0];
+        const [first] = suggestions.value;
         if (first === undefined) {
           process.stderr.write('No branch suggestions were returned.\n');
           process.exitCode = 1;

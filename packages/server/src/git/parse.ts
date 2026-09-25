@@ -26,23 +26,25 @@ export function parseStatus(raw: string): GitStatus {
       continue;
     }
 
-    const kind = line[0];
+    const [kind] = line;
     if (kind === '1') {
       const parts = line.split(' ');
-      const statusCodes = parts[1] ?? '..';
+      const [, statusCodes = '..'] = parts;
+      const [indexCode = '.', workingTreeCode = '.'] = statusCodes;
       files.push({
         path: parts.slice(8).join(' '),
-        index: mapStatusChar(statusCodes[0] ?? '.'),
-        workingTree: mapStatusChar(statusCodes[1] ?? '.'),
+        index: mapStatusChar(indexCode),
+        workingTree: mapStatusChar(workingTreeCode),
       });
     } else if (kind === '2') {
       const parts = line.split(' ');
-      const statusCodes = parts[1] ?? '..';
+      const [, statusCodes = '..'] = parts;
+      const [indexCode = '.', workingTreeCode = '.'] = statusCodes;
       const [path, originalPath] = parts.slice(9).join(' ').split('\t');
       files.push({
         path: path ?? '',
-        index: mapStatusChar(statusCodes[0] ?? '.'),
-        workingTree: mapStatusChar(statusCodes[1] ?? '.'),
+        index: mapStatusChar(indexCode),
+        workingTree: mapStatusChar(workingTreeCode),
         ...(originalPath !== undefined ? { originalPath } : {}),
       });
     } else if (kind === 'u') {
@@ -76,8 +78,7 @@ export function parseNumstat(raw: string): GitDiffFile[] {
     if (line === '') continue;
     const parts = line.split('\t');
     if (parts.length < 3) continue;
-    const add = parts[0] ?? '';
-    const del = parts[1] ?? '';
+    const [add = '', del = ''] = parts;
     const binary = add === '-' || del === '-';
     files.push({
       path: parts.slice(2).join('\t'),

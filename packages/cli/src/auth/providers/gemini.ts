@@ -86,7 +86,7 @@ export function normalizeGeminiResponse(
   const parsed = parseWithSchema(geminiGenerateContentSchema, raw);
   if (!parsed.ok) return err(providerError('invalid_response', 'Unexpected Gemini response shape', parsed.error));
 
-  const candidate = parsed.value.candidates?.[0];
+  const [candidate] = parsed.value.candidates ?? [];
   const aggregated = parsed.value.text ?? '';
   const text = aggregated !== '' ? aggregated : (candidate?.content?.parts ?? []).map((part: { text?: string | undefined }) => part.text ?? '').join('');
   if (text === '') return err(providerError('empty_completion', 'Gemini returned no text'));

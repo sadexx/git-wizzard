@@ -103,5 +103,6 @@ test('runAuthFlow prompts and persists interactively', async () => {
   const result = await runAuthFlow(dependencies, { validate: true });
   assert.equal(result.ok, true);
   assert.equal(saved.length, 1);
-  assert.equal(saved[0]?.apiKey, 'interactive-key');
+  const [savedConfig] = saved;
+  assert.equal(savedConfig?.apiKey, 'interactive-key');
 });

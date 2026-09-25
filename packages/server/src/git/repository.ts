@@ -93,11 +93,8 @@ export class GitRepository {
     } catch (cause) {
       return err(gitError('command_failed', 'Failed to read HEAD after commit', cause));
     }
-    return parseWithSchema(commitResultSchema, {
-      sha,
-      branch,
-      summary: message.split('\n')[0] ?? message,
-    });
+    const [summary = message] = message.split('\n');
+    return parseWithSchema(commitResultSchema, { sha, branch, summary });
   }
 
   public async createBranch(name: string): Promise<Result<CreateBranchOutput, RepoError>> {

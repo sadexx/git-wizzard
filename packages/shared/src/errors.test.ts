@@ -32,7 +32,8 @@ test('validationError normalizes zod issues to path/message', () => {
     const error = validationError(parsed.error);
     assert.equal(error.kind, 'ValidationError');
     assert.equal(error.issues.length, 1);
-    assert.equal(error.issues[0]?.path, 'n');
+    const [firstIssue] = error.issues;
+    assert.equal(firstIssue?.path, 'n');
   }
 });
 

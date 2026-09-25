@@ -20,12 +20,12 @@ export function buildBranchPrompt(diff: GitDiff, type: BranchType | undefined): 
 
 /** Split model output into subject/body/message. Subject is trimmed of wrapping quotes and clamped to 72 chars. */
 export function parseCommitMessage(text: string): GenerateCommitMessageOutput {
-  const lines = text.trim().split('\n');
-  const subject = (lines[0] ?? '')
+  const [firstLine = '', ...bodyLines] = text.trim().split('\n');
+  const subject = firstLine
     .trim()
     .replace(/^["'`]+|["'`]+$/g, '')
     .slice(0, 72);
-  const body = lines.slice(1).join('\n').trim();
+  const body = bodyLines.join('\n').trim();
   return body ? { subject, body, message: `${subject}\n\n${body}` } : { subject, message: subject };
 }
 
