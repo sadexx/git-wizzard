@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { FinishReason, GoogleGenAI } from '@google/genai';
 import {
   authError,
   err,
@@ -100,15 +100,15 @@ export function normalizeGeminiResponse(
 
 function mapFinish(reason: string | undefined): CompletionResponse['finishReason'] {
   switch (reason) {
-    case 'STOP':
+    case FinishReason.STOP:
       return 'stop';
-    case 'MAX_TOKENS':
+    case FinishReason.MAX_TOKENS:
       return 'length';
-    case 'SAFETY':
-    case 'RECITATION':
-    case 'BLOCKLIST':
-    case 'PROHIBITED_CONTENT':
-    case 'SPII':
+    case FinishReason.SAFETY:
+    case FinishReason.RECITATION:
+    case FinishReason.BLOCKLIST:
+    case FinishReason.PROHIBITED_CONTENT:
+    case FinishReason.SPII:
       return 'content_filter';
     default:
       return 'other';
