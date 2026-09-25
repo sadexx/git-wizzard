@@ -15,8 +15,8 @@ export function Menu({ onSelect }: { onSelect: (target: MenuTarget) => void }): 
   const { exit } = useApp();
 
   useInput((input: string, key: Key) => {
-    if (key.upArrow) setIndex((i: number) => (i - 1 + ITEMS.length) % ITEMS.length);
-    else if (key.downArrow) setIndex((i: number) => (i + 1) % ITEMS.length);
+    if (key.upArrow) setIndex((previousIndex: number) => (previousIndex - 1 + ITEMS.length) % ITEMS.length);
+    else if (key.downArrow) setIndex((previousIndex: number) => (previousIndex + 1) % ITEMS.length);
     else if (key.return) {
       const item = ITEMS[index];
       if (item === undefined) return;
@@ -28,8 +28,8 @@ export function Menu({ onSelect }: { onSelect: (target: MenuTarget) => void }): 
   return (
     <Box flexDirection="column">
       <Text bold>git-assistant</Text>
-      {ITEMS.map((item: (typeof ITEMS)[number], i: number) => {
-        const isSelected = i === index;
+      {ITEMS.map((item: (typeof ITEMS)[number], itemIndex: number) => {
+        const isSelected = itemIndex === index;
         return (
           <Text key={item.key} {...(isSelected && { color: 'green' })}>
             {isSelected ? '❯ ' : '  '}

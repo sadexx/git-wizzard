@@ -27,11 +27,11 @@ export function ConfirmPrompt({
       }
 
       if (key.backspace || key.delete) {
-        setCurrent((v: string) => v.slice(0, -1));
+        setCurrent((previousText: string) => previousText.slice(0, -1));
         return;
       }
 
-      if (input && !key.ctrl && !key.meta) setCurrent((v: string) => v + input);
+      if (input && !key.ctrl && !key.meta) setCurrent((previousText: string) => previousText + input);
       return;
     }
 

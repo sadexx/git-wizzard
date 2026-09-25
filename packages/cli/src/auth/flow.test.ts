@@ -16,7 +16,7 @@ function deps(overrides: Partial<AuthDeps>): AuthDeps {
   const saved: PersistedConfig[] = [];
   const prompter: Prompter = {
     select: async () => 'openai',
-    text: async (_m: string, d: string) => d,
+    text: async (_message: string, defaultValue: string) => defaultValue,
     secret: async () => 'interactive-key',
   };
 

@@ -18,28 +18,28 @@ test('isOk/isErr reflect the discriminant', () => {
 
 test('map transforms value, passes error through', () => {
   assert.deepEqual(
-    map(ok(2), (n: number) => n + 1),
+    map(ok(2), (value: number) => value + 1),
     ok(3),
   );
   assert.deepEqual(
-    map(err<string>('x'), (n: number) => n + 1),
+    map(err<string>('x'), (value: number) => value + 1),
     err('x'),
   );
 });
 
 test('mapErr transforms error, passes value through', () => {
   assert.deepEqual(
-    mapErr(err('x'), (e: string) => e.toUpperCase()),
+    mapErr(err('x'), (error: string) => error.toUpperCase()),
     err('X'),
   );
   assert.deepEqual(
-    mapErr(ok(5), (e: string) => e),
+    mapErr(ok(5), (error: string) => error),
     ok(5),
   );
 });
 
 test('andThen chains only on success', () => {
-  const step = (n: number): Result<number, string> => (n > 0 ? ok(n * 2) : err('neg'));
+  const step = (input: number): Result<number, string> => (input > 0 ? ok(input * 2) : err('neg'));
   assert.deepEqual(andThen(ok(3), step), ok(6));
   assert.deepEqual(andThen(ok(-1), step), err('neg'));
   assert.deepEqual(andThen(err<string>('e'), step), err('e'));
@@ -51,8 +51,8 @@ test('unwrapOr yields fallback on error', () => {
 });
 
 test('match dispatches on branch', () => {
-  assert.equal(match(ok(1), { ok: (v: number) => `v${v}`, err: (e: unknown) => `e${String(e)}` }), 'v1');
-  assert.equal(match(err('x'), { ok: (v: unknown) => `v${String(v)}`, err: (e: string) => `e${e}` }), 'ex');
+  assert.equal(match(ok(1), { ok: (value: number) => `v${value}`, err: (error: unknown) => `e${String(error)}` }), 'v1');
+  assert.equal(match(err('x'), { ok: (value: unknown) => `v${String(value)}`, err: (error: string) => `e${error}` }), 'ex');
 });
 
 test('tryCatchAsync captures resolution and thrown error', async () => {

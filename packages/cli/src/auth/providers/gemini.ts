@@ -88,7 +88,7 @@ export function normalizeGeminiResponse(
 
   const candidate = parsed.value.candidates?.[0];
   const aggregated = parsed.value.text ?? '';
-  const text = aggregated !== '' ? aggregated : (candidate?.content?.parts ?? []).map((p: { text?: string | undefined }) => p.text ?? '').join('');
+  const text = aggregated !== '' ? aggregated : (candidate?.content?.parts ?? []).map((part: { text?: string | undefined }) => part.text ?? '').join('');
   if (text === '') return err(providerError('empty_completion', 'Gemini returned no text'));
 
   return ok({

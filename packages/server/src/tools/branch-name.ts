@@ -40,11 +40,11 @@ export function registerBranchNameTool(server: McpServer): void {
         return toolErr(providerError('request_failed', 'Sampling request failed', cause));
       }
       if (sampled.content.type !== 'text') {
-        return toolErr(providerError('invalid_response', 'Sampling return non-text content'));
+        return toolErr(providerError('invalid_response', 'Sampling returned non-text content'));
       }
       return fromResult(
         parseWithSchema(suggestBranchNameOutputSchema, { suggestions: parseBranchSuggestions(sampled.content.text) }),
-        (o: SuggestBranchNameOutput) => `Suggestions: ${o.suggestions.join(', ')}`,
+        (branchSuggestions: SuggestBranchNameOutput) => `Suggestions: ${branchSuggestions.suggestions.join(', ')}`,
       );
     },
   );

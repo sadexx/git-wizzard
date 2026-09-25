@@ -8,7 +8,7 @@ import { ConfirmPrompt } from '#ui/components/ConfirmPrompt.js';
 
 type Phase =
   | { kind: 'review' }
-  | { kind: 'commiting' }
+  | { kind: 'committing' }
   | { kind: 'done'; sha: string; branch: string }
   | { kind: 'failed'; message: string };
 
@@ -19,7 +19,7 @@ export function CommitGenerate({ client, onBack }: { client: GitAssistantClient;
 
   const commit = useCallback(
     (message: string) => {
-      setPhase({ kind: 'commiting' });
+      setPhase({ kind: 'committing' });
       client
         .createCommit({ message })
         .then((result: Result<CommitResult, ClientError>) => {
@@ -58,7 +58,7 @@ export function CommitGenerate({ client, onBack }: { client: GitAssistantClient;
   if (phase.kind === 'review') {
     return <ConfirmPrompt label="Commit message" value={state.data.message} onConfirm={commit} onAbort={onBack} />;
   }
-  if (phase.kind === 'commiting') return <Spinner label="Creating commit..." />;
+  if (phase.kind === 'committing') return <Spinner label="Creating commit..." />;
   if (phase.kind === 'done') {
     return (
       <Box flexDirection="column">

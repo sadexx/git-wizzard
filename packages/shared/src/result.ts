@@ -44,13 +44,16 @@ export function match<T, E, A, B>(
 }
 
 /**
- * Wrap a promise-returning fn, mapping any thrown value into a typed error.
+ * Wrap a promise-returning operation, mapping any thrown value into a typed error.
  * The single boundary where `throw` from I/O (git, provider SDKs) is converted
  * into the Result channel used everywhere else.
  */
-export async function tryCatchAsync<T, E>(fn: () => Promise<T>, onError: (cause: unknown) => E): Promise<Result<T, E>> {
+export async function tryCatchAsync<T, E>(
+  operation: () => Promise<T>,
+  onError: (cause: unknown) => E,
+): Promise<Result<T, E>> {
   try {
-    return ok(await fn());
+    return ok(await operation());
   } catch (cause) {
     return err(onError(cause));
   }

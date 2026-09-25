@@ -17,17 +17,17 @@ export function registerCommitCommand(program: Command): void {
 
         const decision = await resolveDecision(createActionPrompter(), 'Commit message', generated.value.message);
         if (decision.kind === 'abort') {
-          process.stdout.write('Aborted. No commit create.\n');
+          process.stdout.write('Aborted. No commit created.\n');
           return;
         }
 
-        const commited = await client.createCommit({ message: decision.value });
-        if (!commited.ok) {
-          printError(commited.error);
+        const commitResult = await client.createCommit({ message: decision.value });
+        if (!commitResult.ok) {
+          printError(commitResult.error);
           return;
         }
 
-        process.stdout.write(`Created commit ${commited.value.sha.slice(0, 8)} on ${commited.value.branch}.\n`);
+        process.stdout.write(`Created commit ${commitResult.value.sha.slice(0, 8)} on ${commitResult.value.branch}.\n`);
       });
     });
 }

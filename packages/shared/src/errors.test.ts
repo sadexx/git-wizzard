@@ -12,16 +12,16 @@ import {
 } from '#errors.js';
 
 test('factory omits cause when not supplied', () => {
-  const e = authError('invalid_api_key', 'bad key');
-  assert.equal(e.kind, 'AuthError');
-  assert.equal(e.reason, 'invalid_api_key');
-  assert.equal('cause' in e, false);
+  const error = authError('invalid_api_key', 'bad key');
+  assert.equal(error.kind, 'AuthError');
+  assert.equal(error.reason, 'invalid_api_key');
+  assert.equal('cause' in error, false);
 });
 
 test('factory attaches cause when supplied', () => {
   const cause = new Error('io');
-  const e = authError('config_read_failed', 'read failed', cause);
-  assert.equal(e.cause, cause);
+  const error = authError('config_read_failed', 'read failed', cause);
+  assert.equal(error.cause, cause);
 });
 
 test('validationError normalizes zod issues to path/message', () => {
@@ -29,25 +29,25 @@ test('validationError normalizes zod issues to path/message', () => {
   const parsed = schema.safeParse({ n: 'no' });
   assert.equal(parsed.success, false);
   if (!parsed.success) {
-    const e = validationError(parsed.error);
-    assert.equal(e.kind, 'ValidationError');
-    assert.equal(e.issues.length, 1);
-    assert.equal(e.issues[0]?.path, 'n');
+    const error = validationError(parsed.error);
+    assert.equal(error.kind, 'ValidationError');
+    assert.equal(error.issues.length, 1);
+    assert.equal(error.issues[0]?.path, 'n');
   }
 });
 
 test('parseWithSchema returns ok on valid input', () => {
   const schema = z.object({ n: z.number() });
-  const r = parseWithSchema(schema, { n: 1 });
-  assert.equal(r.ok, true);
-  if (r.ok) assert.deepEqual(r.value, { n: 1 });
+  const result = parseWithSchema(schema, { n: 1 });
+  assert.equal(result.ok, true);
+  if (result.ok) assert.deepEqual(result.value, { n: 1 });
 });
 
 test('parseWithSchema returns ValidationError on invalid input', () => {
   const schema = z.object({ n: z.number() });
-  const r = parseWithSchema(schema, { n: 'x' });
-  assert.equal(r.ok, false);
-  if (!r.ok) assert.equal(r.error.kind, 'ValidationError');
+  const result = parseWithSchema(schema, { n: 'x' });
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.equal(result.error.kind, 'ValidationError');
 });
 
 test('isAppError guards union membership', () => {

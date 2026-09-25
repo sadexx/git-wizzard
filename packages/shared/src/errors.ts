@@ -95,7 +95,7 @@ export function formatError(error: AppError): string {
     case 'ProviderError':
       return `Provider error (${error.reason}): ${error.message}`;
     case 'ValidationError':
-      const detail = error.issues.map((i: ValidationIssue) => `${i.path || '<root>'}: ${i.message}`).join('; ');
+      const detail = error.issues.map((issue: ValidationIssue) => `${issue.path || '<root>'}: ${issue.message}`).join('; ');
       return `Validation error: ${error.message}${detail ? ` [${detail}]` : ''}`;
   }
 }

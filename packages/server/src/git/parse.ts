@@ -29,20 +29,20 @@ export function parseStatus(raw: string): GitStatus {
     const kind = line[0];
     if (kind === '1') {
       const parts = line.split(' ');
-      const xy = parts[1] ?? '..';
+      const statusCodes = parts[1] ?? '..';
       files.push({
         path: parts.slice(8).join(' '),
-        index: mapStatusChar(xy[0] ?? '.'),
-        workingTree: mapStatusChar(xy[1] ?? '.'),
+        index: mapStatusChar(statusCodes[0] ?? '.'),
+        workingTree: mapStatusChar(statusCodes[1] ?? '.'),
       });
     } else if (kind === '2') {
       const parts = line.split(' ');
-      const xy = parts[1] ?? '..';
+      const statusCodes = parts[1] ?? '..';
       const [path, originalPath] = parts.slice(9).join(' ').split('\t');
       files.push({
         path: path ?? '',
-        index: mapStatusChar(xy[0] ?? '.'),
-        workingTree: mapStatusChar(xy[1] ?? '.'),
+        index: mapStatusChar(statusCodes[0] ?? '.'),
+        workingTree: mapStatusChar(statusCodes[1] ?? '.'),
         ...(originalPath !== undefined ? { originalPath } : {}),
       });
     } else if (kind === 'u') {

@@ -25,9 +25,9 @@ export function registerStatusTool(server: McpServer): void {
       const status = await repo.value.status();
       return fromResult(
         status,
-        (s: GitStatus) =>
-          `On ${s.branch}${s.upstream !== undefined ? ` (tracking ${s.upstream})` : ''}: ` +
-          `${s.files.length} changed file(s), ${s.ahead} ahead / ${s.behind} behind.`,
+        (gitStatus: GitStatus) =>
+          `On ${gitStatus.branch}${gitStatus.upstream !== undefined ? ` (tracking ${gitStatus.upstream})` : ''}: ` +
+          `${gitStatus.files.length} changed file(s), ${gitStatus.ahead} ahead / ${gitStatus.behind} behind.`,
       );
     },
   );

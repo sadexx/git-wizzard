@@ -20,7 +20,8 @@ export function registerDiffTool(server: McpServer): void {
       const diff = await repo.value.diff(input.staged ?? false);
       return fromResult(
         diff,
-        (d: GitDiff) => `${d.staged ? 'Staged' : 'Unstaged'} diff: ${d.files.length} file(s), +${d.additions}/-${d.deletions}.`,
+        (gitDiff: GitDiff) =>
+          `${gitDiff.staged ? 'Staged' : 'Unstaged'} diff: ${gitDiff.files.length} file(s), +${gitDiff.additions}/-${gitDiff.deletions}.`,
       );
     },
   );

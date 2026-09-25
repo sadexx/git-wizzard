@@ -181,12 +181,12 @@ function readProcessEnv(): AuthEnv {
 function createReadlinePrompter(): Prompter {
   return {
     async select(message, choices) {
-      const rl = createInterface({ input: stdin, output: stdout });
+      const readline = createInterface({ input: stdin, output: stdout });
       try {
         stdout.write(`${message}:\n`);
         choices.forEach((choice: ProviderName, i: number) => stdout.write(`  ${i + 1}) ${choice}\n`));
         for (;;) {
-          const answer = (await rl.question('> ')).trim();
+          const answer = (await readline.question('> ')).trim();
           const byIndex = choices[Number.parseInt(answer, 10) - 1];
           if (byIndex !== undefined) return byIndex;
           const byName = choices.find((choice: ProviderName) => choice === answer);
@@ -194,16 +194,16 @@ function createReadlinePrompter(): Prompter {
           stdout.write('Invalid selection.\n');
         }
       } finally {
-        rl.close();
+        readline.close();
       }
     },
     async text(message, defaultValue) {
-      const rl = createInterface({ input: stdin, output: stdout });
+      const readline = createInterface({ input: stdin, output: stdout });
       try {
-        const answer = (await rl.question(`${message} [${defaultValue}]: `)).trim();
+        const answer = (await readline.question(`${message} [${defaultValue}]: `)).trim();
         return answer === '' ? defaultValue : answer;
       } finally {
-        rl.close();
+        readline.close();
       }
     },
     secret(message) {
@@ -225,26 +225,26 @@ function readSecret(prompt: string): Promise<string> {
       stdin.pause();
     };
     const onData = (chunk: Buffer): void => {
-      for (const ch of chunk.toString('utf8')) {
-        if (ch === '\n' || ch === '\r' || ch === '\u0004') {
+      for (const character of chunk.toString('utf8')) {
+        if (character === '\n' || character === '\r' || character === '\u0004') {
           cleanup();
           stdout.write('\n');
           resolve(value);
           return;
         }
-        if (ch === '\u0003') {
+        if (character === '\u0003') {
           cleanup();
           stdout.write('\n');
           reject(new Error('Input cancelled'));
           return;
         }
-        if (ch === '\u007f' || ch === '\b') {
+        if (character === '\u007f' || character === '\b') {
           if (value.length > 0) {
             value = value.slice(0, -1);
             stdout.write('\b \b');
           }
         } else {
-          value += ch;
+          value += character;
           stdout.write('*');
         }
       }

@@ -23,7 +23,7 @@ export function registerCreateBranchTool(server: McpServer): void {
       if (!repo.ok) return toolErr(repo.error);
 
       const result = await repo.value.createBranch(input.name);
-      return fromResult(result, (b: CreateBranchOutput) => `Created and switched to ${b.branch}.`);
+      return fromResult(result, (createdBranch: CreateBranchOutput) => `Created and switched to ${createdBranch.branch}.`);
     },
   );
 }

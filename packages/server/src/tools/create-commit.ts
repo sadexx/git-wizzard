@@ -23,7 +23,11 @@ export function registerCreateCommitTool(server: McpServer): void {
       if (!repo.ok) return toolErr(repo.error);
 
       const result = await repo.value.createCommit(input.message);
-      return fromResult(result, (c: CommitResult) => `Commited ${c.sha.slice(0, 8)} on ${c.branch}: ${c.summary}`);
+      return fromResult(
+        result,
+        (createdCommit: CommitResult) =>
+          `Committed ${createdCommit.sha.slice(0, 8)} on ${createdCommit.branch}: ${createdCommit.summary}`,
+      );
     },
   );
 }

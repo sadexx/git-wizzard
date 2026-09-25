@@ -31,29 +31,29 @@ export function createActionPrompter(): ActionPrompter {
       stdout.write(`\n${label}:\n${value}\n\n`);
     },
     async choose() {
-      const rl = createInterface({ input: stdin, output: stdout });
+      const readline = createInterface({ input: stdin, output: stdout });
       try {
         for (;;) {
-          const answer = (await rl.question('[c]confirm / [e]edit / [a]abort: ')).trim().toLowerCase();
+          const answer = (await readline.question('[c]confirm / [e]edit / [a]abort: ')).trim().toLowerCase();
           if (answer === 'c' || answer === 'confirm') return 'confirm';
           if (answer === 'e' || answer === 'edit') return 'edit';
           if (answer === 'a' || answer === 'abort') return 'abort';
           stdout.write('Please enter c, e, or a.\n');
         }
       } finally {
-        rl.close();
+        readline.close();
       }
     },
     async edit(current) {
       const edited = editViaEditor(current);
       if (edited !== current) return edited;
 
-      const rl = createInterface({ input: stdin, output: stdout });
+      const readline = createInterface({ input: stdin, output: stdout });
       try {
-        const answer = (await rl.question('New value (blank to keep current): ')).trim();
+        const answer = (await readline.question('New value (blank to keep current): ')).trim();
         return answer === '' ? current : answer;
       } finally {
-        rl.close();
+        readline.close();
       }
     },
   };

@@ -3,20 +3,20 @@ import assert from 'node:assert/strict';
 import { resolveDecision, type ActionPrompter } from '#commands/prompt.js';
 
 function fake(choices: Array<'confirm' | 'edit' | 'abort'>, edits: string[]): ActionPrompter {
-  let ci: number = 0;
-  let ei: number = 0;
+  let choiceIndex: number = 0;
+  let editIndex: number = 0;
 
   return {
     show() {},
     async choose() {
-      const choice = choices[ci];
-      ci += 1;
+      const choice = choices[choiceIndex];
+      choiceIndex += 1;
       if (choice === undefined) throw new Error('unexpected extra choose()');
       return choice;
     },
     async edit() {
-      const edit = edits[ei];
-      ei += 1;
+      const edit = edits[editIndex];
+      editIndex += 1;
       if (edit === undefined) throw new Error('unexpected extra edit()');
       return edit;
     },

@@ -48,7 +48,7 @@ export function registerCommitMessageTool(server: McpServer): void {
       }
       return fromResult(
         parseWithSchema(generateCommitMessageOutputSchema, parseCommitMessage(sampled.content.text)),
-        (m: GenerateCommitMessageOutput) => m.message,
+        (generated: GenerateCommitMessageOutput) => generated.message,
       );
     },
   );

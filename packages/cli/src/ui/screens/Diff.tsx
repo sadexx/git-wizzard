@@ -12,7 +12,7 @@ export function Diff({ client, onBack }: { client: GitAssistantClient; onBack: (
 
   useInput((input: string, key: Key) => {
     if (key.escape || input === 'b') onBack();
-    else if (input === 's') setStaged((s: boolean) => !s);
+    else if (input === 's') setStaged((wasStaged: boolean) => !wasStaged);
   });
 
   return (

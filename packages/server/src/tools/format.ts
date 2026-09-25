@@ -8,13 +8,13 @@ export const BRANCH_SYSTEM_PROMPT: string =
   'using only [a-z0-9._/-].';
 
 export function buildCommitPrompt(diff: GitDiff): string {
-  const fileList = diff.files.map((f: GitDiffFile) => `- ${f.path} (+${f.additions}/-${f.deletions})`).join('\n');
+  const fileList = diff.files.map((file: GitDiffFile) => `- ${file.path} (+${file.additions}/-${file.deletions})`).join('\n');
   return `Staged changes (+${diff.additions}/-${diff.deletions}):\n${fileList}\n\nDiff:\n${clampPatch(diff.patch)}`;
 }
 
 export function buildBranchPrompt(diff: GitDiff, type: BranchType | undefined): string {
   const prefix = type !== undefined ? `Preferred prefix/type: ${type}.\n` : '';
-  const fileList = diff.files.map((f: GitDiffFile) => `- ${f.path}`).join('\n');
+  const fileList = diff.files.map((file: GitDiffFile) => `- ${file.path}`).join('\n');
   return `${prefix}Changed files:\n${fileList}\n\nDiff:\n${clampPatch(diff.patch)}`;
 }
 
