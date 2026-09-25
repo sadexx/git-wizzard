@@ -18,7 +18,7 @@ test('isOk/isErr reflect the discriminant', () => {
 
 test('map transforms value, passes error through', () => {
   assert.deepEqual(
-    map(ok(2), (n) => n + 1),
+    map(ok(2), (n: number) => n + 1),
     ok(3),
   );
   assert.deepEqual(
@@ -29,7 +29,7 @@ test('map transforms value, passes error through', () => {
 
 test('mapErr transforms error, passes value through', () => {
   assert.deepEqual(
-    mapErr(err('x'), (e) => e.toUpperCase()),
+    mapErr(err('x'), (e: string) => e.toUpperCase()),
     err('X'),
   );
   assert.deepEqual(
@@ -51,8 +51,8 @@ test('unwrapOr yields fallback on error', () => {
 });
 
 test('match dispatches on branch', () => {
-  assert.equal(match(ok(1), { ok: (v) => `v${v}`, err: (e) => `e${String(e)}` }), 'v1');
-  assert.equal(match(err('x'), { ok: (v) => `v${String(v)}`, err: (e) => `e${e}` }), 'ex');
+  assert.equal(match(ok(1), { ok: (v: number) => `v${v}`, err: (e: unknown) => `e${String(e)}` }), 'v1');
+  assert.equal(match(err('x'), { ok: (v: unknown) => `v${String(v)}`, err: (e: string) => `e${e}` }), 'ex');
 });
 
 test('tryCatchAsync captures resolution and thrown error', async () => {
@@ -66,7 +66,7 @@ test('tryCatchAsync captures resolution and thrown error', async () => {
     async () => {
       throw new Error('boom');
     },
-    (cause) => (cause as Error).message,
+    (cause: unknown) => (cause as Error).message,
   );
   assert.deepEqual(bad, err('boom'));
 });

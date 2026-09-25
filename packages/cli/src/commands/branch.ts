@@ -1,5 +1,6 @@
 import { type Command, Option } from 'commander';
 import { branchTypeSchema, type BranchType } from '@git-assistant/shared';
+import type { GitAssistantClient } from '#mcp/client.js';
 import { printError, withClient } from '#commands/support.js';
 import { createActionPrompter, resolveDecision } from '#commands/prompt.js';
 
@@ -10,7 +11,7 @@ export function registerBranchCommand(program: Command): void {
     .addOption(new Option('--type <type>', 'Branch type prefix').choices([...branchTypeSchema.options]))
     .action(async (options: { type?: string }) => {
       const type = parseBranchType(options.type);
-      await withClient(async (client) => {
+      await withClient(async (client: GitAssistantClient) => {
         const suggestions = await client.suggestBranchName(type !== undefined ? { type } : {});
         if (!suggestions.ok) {
           printError(suggestions.error);

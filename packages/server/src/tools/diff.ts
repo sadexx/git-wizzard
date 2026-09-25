@@ -1,5 +1,5 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { getDiffInputSchema, getDiffOutputSchema } from '@git-assistant/shared';
+import { getDiffInputSchema, getDiffOutputSchema, type GetDiffInput, type GitDiff } from '@git-assistant/shared';
 import { GitRepository } from '#git/repository.js';
 import { fromResult, toolErr } from '#tools/tool-result.js';
 
@@ -13,14 +13,14 @@ export function registerDiffTool(server: McpServer): void {
       outputSchema: getDiffOutputSchema,
       annotations: { readOnlyHint: true },
     },
-    async (input) => {
+    async (input: GetDiffInput) => {
       const repo = await GitRepository.open(input.repoPath);
       if (!repo.ok) return toolErr(repo.error);
 
       const diff = await repo.value.diff(input.staged ?? false);
       return fromResult(
         diff,
-        (d) => `${d.staged ? 'Staged' : 'Unstaged'} diff: ${d.files.length} file(s), +${d.additions}/-${d.deletions}.`,
+        (d: GitDiff) => `${d.staged ? 'Staged' : 'Unstaged'} diff: ${d.files.length} file(s), +${d.additions}/-${d.deletions}.`,
       );
     },
   );

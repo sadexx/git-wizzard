@@ -1,5 +1,6 @@
 import type { Command } from 'commander';
 import type { GitFileChange, GitStatus } from '@git-assistant/shared';
+import type { GitAssistantClient } from '#mcp/client.js';
 import { printError, withClient } from '#commands/support.js';
 
 export function registerStatusCommand(program: Command): void {
@@ -7,7 +8,7 @@ export function registerStatusCommand(program: Command): void {
     .command('status')
     .description('Show the working-tree status')
     .action(async () => {
-      await withClient(async (client) => {
+      await withClient(async (client: GitAssistantClient) => {
         const result = await client.getStatus();
         if (!result.ok) {
           printError(result.error);
@@ -25,7 +26,7 @@ export function formatStatus(status: GitStatus): string {
 
   const files = status.files
     .map(
-      (file) =>
+      (file: GitFileChange) =>
         `  ${fileLabel(file)}  ${file.path}${file.originalPath !== undefined ? ` (from ${file.originalPath})` : ''}`,
     )
     .join('\n');

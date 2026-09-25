@@ -63,8 +63,8 @@ export function providerError(reason: ProviderErrorReason, message: string, caus
 }
 
 export function validationError(error: z.ZodError, message = 'Validation failed'): ValidationError {
-  const issues: readonly ValidationIssue[] = error.issues.map((issue) => ({
-    path: issue.path.map((seg) => (typeof seg === 'symbol' ? (seg.description ?? '') : String(seg))).join('.'),
+  const issues: readonly ValidationIssue[] = error.issues.map((issue: z.core.$ZodIssue) => ({
+    path: issue.path.map((seg: PropertyKey) => (typeof seg === 'symbol' ? (seg.description ?? '') : String(seg))).join('.'),
     message: issue.message,
   }));
   return { kind: 'ValidationError', message, issues, cause: error };
@@ -95,7 +95,7 @@ export function formatError(error: AppError): string {
     case 'ProviderError':
       return `Provider error (${error.reason}): ${error.message}`;
     case 'ValidationError':
-      const detail = error.issues.map((i) => `${i.path || '<root>'}: ${i.message}`).join('; ');
+      const detail = error.issues.map((i: ValidationIssue) => `${i.path || '<root>'}: ${i.message}`).join('; ');
       return `Validation error: ${error.message}${detail ? ` [${detail}]` : ''}`;
   }
 }

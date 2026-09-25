@@ -12,7 +12,7 @@ export function useMcpTool<T>(run: () => Promise<Result<T, AppError>>): { state:
   const reload = useCallback(() => {
     setState({ status: 'loading' });
     run()
-      .then((result) => {
+      .then((result: Result<T, AppError>) => {
         setState(
           result.ok
             ? { status: 'success', data: result.value }

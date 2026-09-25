@@ -3,6 +3,7 @@ import {
   type Result,
   type GitStatus,
   type GitDiff,
+  type GitDiffFile,
   type CommitResult,
   type GitError,
   type ValidationError,
@@ -67,8 +68,8 @@ export class GitRepository {
       return err(gitError('command_failed', 'git diff failed', cause));
     }
     const files = parseNumstat(numstat);
-    const additions = files.reduce((sum, file) => sum + file.additions, 0);
-    const deletions = files.reduce((sum, file) => sum + file.deletions, 0);
+    const additions = files.reduce((sum: number, file: GitDiffFile) => sum + file.additions, 0);
+    const deletions = files.reduce((sum: number, file: GitDiffFile) => sum + file.deletions, 0);
     return parseWithSchema(gitDiffSchema, { staged, additions, deletions, files, patch });
   }
 

@@ -1,5 +1,10 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { createCommitInputSchema, createCommitOutputSchema } from '@git-assistant/shared';
+import {
+  createCommitInputSchema,
+  createCommitOutputSchema,
+  type CommitResult,
+  type CreateCommitInput,
+} from '@git-assistant/shared';
 import { GitRepository } from '#git/repository.js';
 import { fromResult, toolErr } from '#tools/tool-result.js';
 
@@ -13,12 +18,12 @@ export function registerCreateCommitTool(server: McpServer): void {
       outputSchema: createCommitOutputSchema,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     },
-    async (input) => {
+    async (input: CreateCommitInput) => {
       const repo = await GitRepository.open(input.repoPath);
       if (!repo.ok) return toolErr(repo.error);
 
       const result = await repo.value.createCommit(input.message);
-      return fromResult(result, (c) => `Commited ${c.sha.slice(0, 8)} on ${c.branch}: ${c.summary}`);
+      return fromResult(result, (c: CommitResult) => `Commited ${c.sha.slice(0, 8)} on ${c.branch}: ${c.summary}`);
     },
   );
 }

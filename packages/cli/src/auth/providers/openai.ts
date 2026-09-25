@@ -12,6 +12,7 @@ import {
   ok,
   type ProviderConfig,
   type CompletionRequest,
+  type ChatMessage,
 } from '@git-assistant/shared';
 import { extractHttpStatus, type ProviderAdapter } from '#auth/provider-adapter.js';
 
@@ -39,7 +40,7 @@ export class OpenAiAdapter implements ProviderAdapter {
     try {
       raw = await this.client.chat.completions.create({
         model: this.model,
-        messages: request.messages.map((message) => ({
+        messages: request.messages.map((message: ChatMessage) => ({
           role: message.role,
           content: message.content,
         })) as OpenAI.Chat.Completions.ChatCompletionMessageParam[],

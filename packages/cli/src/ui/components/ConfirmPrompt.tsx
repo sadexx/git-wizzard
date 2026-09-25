@@ -1,5 +1,5 @@
 import { useState, type ReactElement } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text, useInput, type Key } from 'ink';
 
 export interface ConfirmPromptProps {
   label: string;
@@ -19,7 +19,7 @@ export function ConfirmPrompt({
   const [current, setCurrent] = useState(value);
   const [editing, setEditing] = useState(false);
 
-  useInput((input, key) => {
+  useInput((input: string, key: Key) => {
     if (editing) {
       if (key.return || key.escape) {
         setEditing(false);
@@ -27,11 +27,11 @@ export function ConfirmPrompt({
       }
 
       if (key.backspace || key.delete) {
-        setCurrent((v) => v.slice(0, -1));
+        setCurrent((v: string) => v.slice(0, -1));
         return;
       }
 
-      if (input && !key.ctrl && !key.meta) setCurrent((v) => v + input);
+      if (input && !key.ctrl && !key.meta) setCurrent((v: string) => v + input);
       return;
     }
 

@@ -184,12 +184,12 @@ function createReadlinePrompter(): Prompter {
       const rl = createInterface({ input: stdin, output: stdout });
       try {
         stdout.write(`${message}:\n`);
-        choices.forEach((choice, i) => stdout.write(`  ${i + 1}) ${choice}\n`));
+        choices.forEach((choice: ProviderName, i: number) => stdout.write(`  ${i + 1}) ${choice}\n`));
         for (;;) {
           const answer = (await rl.question('> ')).trim();
           const byIndex = choices[Number.parseInt(answer, 10) - 1];
           if (byIndex !== undefined) return byIndex;
-          const byName = choices.find((choice) => choice === answer);
+          const byName = choices.find((choice: ProviderName) => choice === answer);
           if (byName !== undefined) return byName;
           stdout.write('Invalid selection.\n');
         }
@@ -213,7 +213,7 @@ function createReadlinePrompter(): Prompter {
 }
 
 function readSecret(prompt: string): Promise<string> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve: (value: string) => void, reject: (reason?: unknown) => void) => {
     stdout.write(prompt);
     const wasRaw = stdin.isRaw ?? false;
     if (stdin.isTTY) stdin.setRawMode(true);

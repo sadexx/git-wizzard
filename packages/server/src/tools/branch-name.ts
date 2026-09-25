@@ -5,6 +5,8 @@ import {
   providerError,
   suggestBranchNameInputSchema,
   suggestBranchNameOutputSchema,
+  type SuggestBranchNameInput,
+  type SuggestBranchNameOutput,
 } from '@git-assistant/shared';
 import { GitRepository } from '#git/repository.js';
 import { fromResult, toolErr } from '#tools/tool-result.js';
@@ -20,7 +22,7 @@ export function registerBranchNameTool(server: McpServer): void {
       outputSchema: suggestBranchNameOutputSchema,
       annotations: { readOnlyHint: true },
     },
-    async (input) => {
+    async (input: SuggestBranchNameInput) => {
       const repo = await GitRepository.open(input.repoPath);
       if (!repo.ok) return toolErr(repo.error);
 
@@ -42,7 +44,7 @@ export function registerBranchNameTool(server: McpServer): void {
       }
       return fromResult(
         parseWithSchema(suggestBranchNameOutputSchema, { suggestions: parseBranchSuggestions(sampled.content.text) }),
-        (o) => `Suggestions: ${o.suggestions.join(', ')}`,
+        (o: SuggestBranchNameOutput) => `Suggestions: ${o.suggestions.join(', ')}`,
       );
     },
   );

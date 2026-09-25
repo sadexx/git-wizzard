@@ -12,7 +12,7 @@ export function DiffView({ diff, maxLines = 200 }: { diff: GitDiff; maxLines?: n
       <Text bold>
         {diff.staged ? 'Staged' : 'Unstaged'} — +{diff.additions}/-{diff.deletions} across ${diff.files.length} file(s)
       </Text>
-      {shown.map((line, i) => {
+      {shown.map((line: string, i: number) => {
         const color = lineColor(line);
         return (
           <Text key={i} {...(color && { color })}>

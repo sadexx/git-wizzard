@@ -6,6 +6,8 @@ import {
   gitError,
   parseWithSchema,
   providerError,
+  type GenerateCommitMessageInput,
+  type GenerateCommitMessageOutput,
 } from '@git-assistant/shared';
 import { GitRepository } from '#git/repository.js';
 import { fromResult, toolErr } from '#tools/tool-result.js';
@@ -21,7 +23,7 @@ export function registerCommitMessageTool(server: McpServer): void {
       outputSchema: generateCommitMessageOutputSchema,
       annotations: { readOnlyHint: true },
     },
-    async (input) => {
+    async (input: GenerateCommitMessageInput) => {
       const repo = await GitRepository.open(input.repoPath);
       if (!repo.ok) return toolErr(repo.error);
 
@@ -46,7 +48,7 @@ export function registerCommitMessageTool(server: McpServer): void {
       }
       return fromResult(
         parseWithSchema(generateCommitMessageOutputSchema, parseCommitMessage(sampled.content.text)),
-        (m) => m.message,
+        (m: GenerateCommitMessageOutput) => m.message,
       );
     },
   );

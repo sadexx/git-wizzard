@@ -1,4 +1,5 @@
 import type { Command } from 'commander';
+import type { GitAssistantClient } from '#mcp/client.js';
 import { printError, withClient } from '#commands/support.js';
 import { createActionPrompter, resolveDecision } from '#commands/prompt.js';
 
@@ -7,7 +8,7 @@ export function registerCommitCommand(program: Command): void {
     .command('commit')
     .description('Generate a commit message from staged changes and create the commit')
     .action(async () => {
-      await withClient(async (client) => {
+      await withClient(async (client: GitAssistantClient) => {
         const generated = await client.generateCommitMessage();
         if (!generated.ok) {
           printError(generated.error);

@@ -1,5 +1,5 @@
 import { useCallback, useState, type ReactElement } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text, useInput, type Key } from 'ink';
 import type { GitAssistantClient } from '#mcp/client.js';
 import { useMcpTool } from '#ui/hooks/useMcpTool.js';
 import { Spinner } from '#ui/components/Spinner.js';
@@ -10,9 +10,9 @@ export function Diff({ client, onBack }: { client: GitAssistantClient; onBack: (
   const run = useCallback(() => client.getDiff({ staged }), [client, staged]);
   const { state } = useMcpTool(run);
 
-  useInput((input, key) => {
+  useInput((input: string, key: Key) => {
     if (key.escape || input === 'b') onBack();
-    else if (input === 's') setStaged((s) => !s);
+    else if (input === 's') setStaged((s: boolean) => !s);
   });
 
   return (

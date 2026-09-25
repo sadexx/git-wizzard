@@ -16,7 +16,7 @@ function deps(overrides: Partial<AuthDeps>): AuthDeps {
   const saved: PersistedConfig[] = [];
   const prompter: Prompter = {
     select: async () => 'openai',
-    text: async (_m, d) => d,
+    text: async (_m: string, d: string) => d,
     secret: async () => 'interactive-key',
   };
 
@@ -24,7 +24,7 @@ function deps(overrides: Partial<AuthDeps>): AuthDeps {
     env: emptyEnv,
     prompter,
     loadConfig: async (): Promise<Result<PersistedConfig | null, AuthError>> => ok(null),
-    saveConfig: async (config) => {
+    saveConfig: async (config: PersistedConfig) => {
       saved.push(config);
       return ok(undefined);
     },
@@ -95,7 +95,7 @@ test('runAuthFlow prompts and persists interactively', async () => {
   const saved: PersistedConfig[] = [];
   const dependencies = deps({
     env: { ...emptyEnv, isTty: true },
-    saveConfig: async (config) => {
+    saveConfig: async (config: PersistedConfig) => {
       saved.push(config);
       return ok(undefined);
     },

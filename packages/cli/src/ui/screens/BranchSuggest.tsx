@@ -1,7 +1,7 @@
 import { useCallback, useState, type ReactElement } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { formatError } from '@git-assistant/shared';
-import type { GitAssistantClient } from '#mcp/client.js';
+import { Box, Text, useInput, type Key } from 'ink';
+import { formatError, type CreateBranchOutput, type Result } from '@git-assistant/shared';
+import type { ClientError, GitAssistantClient } from '#mcp/client.js';
 import { useMcpTool } from '#ui/hooks/useMcpTool.js';
 import { Spinner } from '#ui/components/Spinner.js';
 import { ConfirmPrompt } from '#ui/components/ConfirmPrompt.js';
@@ -24,7 +24,7 @@ export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; 
       setPhase({ kind: 'creating' });
       client
         .createBranch({ name })
-        .then((result) => {
+        .then((result: Result<CreateBranchOutput, ClientError>) => {
           setPhase(
             result.ok
               ? { kind: 'done', branch: result.value.branch }
@@ -39,7 +39,7 @@ export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; 
   );
 
   useInput(
-    (input, key) => {
+    (input: string, key: Key) => {
       if (state.status !== 'success') {
         if (key.escape || input === 'b') onBack();
         return;
@@ -100,7 +100,7 @@ export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; 
   return (
     <Box flexDirection="column">
       <Text bold>Branch suggestions</Text>
-      {suggestions.map((name, i) => (
+      {suggestions.map((name: string, i: number) => (
         <Text key={name} {...(i === phase.index && { color: 'green' })}>
           {i === phase.index ? '❯ ' : '  '}
           {name}

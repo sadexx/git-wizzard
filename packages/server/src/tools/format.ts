@@ -1,4 +1,4 @@
-import type { BranchType, GenerateCommitMessageOutput, GitDiff } from '@git-assistant/shared';
+import type { BranchType, GenerateCommitMessageOutput, GitDiff, GitDiffFile } from '@git-assistant/shared';
 
 export const COMMIT_SYSTEM_PROMPT: string =
   'You write Conventional-Commits-style git commit messages. Reply with a concise subject line ' +
@@ -8,13 +8,13 @@ export const BRANCH_SYSTEM_PROMPT: string =
   'using only [a-z0-9._/-].';
 
 export function buildCommitPrompt(diff: GitDiff): string {
-  const fileList = diff.files.map((f) => `- ${f.path} (+${f.additions}/-${f.deletions})`).join('\n');
+  const fileList = diff.files.map((f: GitDiffFile) => `- ${f.path} (+${f.additions}/-${f.deletions})`).join('\n');
   return `Staged changes (+${diff.additions}/-${diff.deletions}):\n${fileList}\n\nDiff:\n${clampPatch(diff.patch)}`;
 }
 
 export function buildBranchPrompt(diff: GitDiff, type: BranchType | undefined): string {
   const prefix = type !== undefined ? `Preferred prefix/type: ${type}.\n` : '';
-  const fileList = diff.files.map((f) => `- ${f.path}`).join('\n');
+  const fileList = diff.files.map((f: GitDiffFile) => `- ${f.path}`).join('\n');
   return `${prefix}Changed files:\n${fileList}\n\nDiff:\n${clampPatch(diff.patch)}`;
 }
 
