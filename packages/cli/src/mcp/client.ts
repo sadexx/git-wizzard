@@ -88,7 +88,7 @@ class StdioGitAssistantClient implements GitAssistantClient {
   public async getDiff(options: { staged?: boolean; repoPath?: string } = {}): Promise<Result<GitDiff, ClientError>> {
     const args: Record<string, unknown> = {};
     if (options.staged !== undefined) args['staged'] = options.staged;
-    if (options.repoPath! == undefined) args['repoPath'] = options.repoPath;
+    if (options.repoPath !== undefined) args['repoPath'] = options.repoPath;
 
     const raw = await this.rawCall('get_diff', args);
     return raw.ok ? parseWithSchema(getDiffOutputSchema, raw.value) : raw;
