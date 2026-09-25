@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatDiff } from '@/commands/diff.js';
+import { formatDiff } from '#commands/diff.js';
 
 test('formatDiff summarizes counts and includes the patch', () => {
   const out = formatDiff({

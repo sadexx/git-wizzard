@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { type Result, ok, err } from '@/result.js';
+import { type Result, ok, err } from '#result.js';
 
 export interface AuthError {
   readonly kind: 'AuthError';

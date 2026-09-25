@@ -1,10 +1,10 @@
 import { useCallback, useState, type ReactElement } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { formatError } from '@git-assistant/shared';
-import type { GitAssistantClient } from '@/mcp/client.js';
-import { useMcpTool } from '@/ui/hooks/useMcpTool.js';
-import { Spinner } from '@/ui/components/Spinner.js';
-import { ConfirmPrompt } from '@/ui/components/ConfirmPrompt.js';
+import type { GitAssistantClient } from '#mcp/client.js';
+import { useMcpTool } from '#ui/hooks/useMcpTool.js';
+import { Spinner } from '#ui/components/Spinner.js';
+import { ConfirmPrompt } from '#ui/components/ConfirmPrompt.js';
 
 type Phase =
   | { kind: 'choosing'; index: number }

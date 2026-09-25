@@ -1,12 +1,12 @@
 import { useCallback, useState, type ReactElement } from 'react';
 import { render } from 'ink';
 import { formatError } from '@git-assistant/shared';
-import { defaultAuthDeps, runAuthFlow } from '@/auth/flow.js';
-import { connectClient, type GitAssistantClient } from '@/mcp/client.js';
-import { Menu } from '@/ui/screens/Menu.js';
-import { Diff } from '@/ui/screens/Diff.js';
-import { BranchSuggest } from '@/ui/screens/BranchSuggest.js';
-import { CommitGenerate } from '@/ui/screens/CommitGenerate.js';
+import { defaultAuthDeps, runAuthFlow } from '#auth/flow.js';
+import { connectClient, type GitAssistantClient } from '#mcp/client.js';
+import { Menu } from '#ui/screens/Menu.js';
+import { Diff } from '#ui/screens/Diff.js';
+import { BranchSuggest } from '#ui/screens/BranchSuggest.js';
+import { CommitGenerate } from '#ui/screens/CommitGenerate.js';
 
 type Screen = 'menu' | 'diff' | 'branch' | 'commit';
 

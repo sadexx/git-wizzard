@@ -11,10 +11,10 @@ import {
   type ProviderName,
   type Result,
 } from '@git-assistant/shared';
-import type { ProviderAdapter, ProviderConfig } from '@/auth/provider-adapter.js';
-import { OpenAiAdapter } from '@/auth/providers/openai.js';
-import { GeminiAdapter } from '@/auth/providers/gemini.js';
-import { loadConfig, saveConfig } from '@/auth/config.js';
+import type { ProviderAdapter, ProviderConfig } from '#auth/provider-adapter.js';
+import { OpenAiAdapter } from '#auth/providers/openai.js';
+import { GeminiAdapter } from '#auth/providers/gemini.js';
+import { loadConfig, saveConfig } from '#auth/config.js';
 
 const DEFAULT_MODELS: Record<ProviderName, string> = {
   openai: 'gpt-5.4-mini',

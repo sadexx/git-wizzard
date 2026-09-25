@@ -23,8 +23,8 @@ import {
   type Result,
   type ValidationError,
 } from '@git-assistant/shared';
-import type { ProviderAdapter } from '@/auth/provider-adapter.js';
-import { createSamplingHandler } from '@/mcp/sampling.js';
+import type { ProviderAdapter } from '#auth/provider-adapter.js';
+import { createSamplingHandler } from '#mcp/sampling.js';
 
 export type ClientError = ProviderError | ValidationError;
 

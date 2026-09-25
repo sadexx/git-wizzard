@@ -4,7 +4,7 @@ import { mkdtemp, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { PersistedConfig } from '@git-assistant/shared';
-import { configPath, loadConfig, saveConfig } from '@/auth/config.js';
+import { configPath, loadConfig, saveConfig } from '#auth/config.js';
 
 async function tempDir(): Promise<string> {
   return mkdtemp(join(tmpdir(), 'git-assistant'));

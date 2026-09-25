@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { GitStatus } from '@git-assistant/shared';
-import { formatStatus } from '@/commands/status.js';
+import { formatStatus } from '#commands/status.js';
 
 const clean: GitStatus = { branch: 'main', ahead: 0, behind: 0, isClean: true, files: [] };
 

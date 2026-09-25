@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { registerAuthCommand } from '@/commands/auth.js';
-import { registerStatusCommand } from '@/commands/status.js';
-import { registerDiffCommand } from '@/commands/diff.js';
-import { registerBranchCommand } from '@/commands/branch.js';
-import { registerCommitCommand } from '@/commands/commit.js';
-import { startInteractiveUi } from '@/ui/App.js';
+import { registerAuthCommand } from '#commands/auth.js';
+import { registerStatusCommand } from '#commands/status.js';
+import { registerDiffCommand } from '#commands/diff.js';
+import { registerBranchCommand } from '#commands/branch.js';
+import { registerCommitCommand } from '#commands/commit.js';
+import { startInteractiveUi } from '#ui/App.js';
 
 function buildProgram(): Command {
   const program = new Command();

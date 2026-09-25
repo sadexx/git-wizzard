@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
-import { printError, withClient } from '@/commands/support.js';
-import { createActionPrompter, resolveDecision } from '@/commands/prompt.js';
+import { printError, withClient } from '#commands/support.js';
+import { createActionPrompter, resolveDecision } from '#commands/prompt.js';
 
 export function registerCommitCommand(program: Command): void {
   program

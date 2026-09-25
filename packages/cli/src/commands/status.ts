@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
 import type { GitFileChange, GitStatus } from '@git-assistant/shared';
-import { printError, withClient } from '@/commands/support.js';
+import { printError, withClient } from '#commands/support.js';
 
 export function registerStatusCommand(program: Command): void {
   program

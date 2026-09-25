@@ -1,7 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { getDiffInputSchema, getDiffOutputSchema } from '@git-assistant/shared';
-import { GitRepository } from '@/git/repository.js';
-import { fromResult, toolErr } from '@/tools/tool-result.js';
+import { GitRepository } from '#git/repository.js';
+import { fromResult, toolErr } from '#tools/tool-result.js';
 
 export function registerDiffTool(server: McpServer): void {
   server.registerTool(

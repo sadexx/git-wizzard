@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
-import { defaultAuthDeps, runAuthFlow } from '@/auth/flow.js';
-import { printError } from '@/commands/support.js';
+import { defaultAuthDeps, runAuthFlow } from '#auth/flow.js';
+import { printError } from '#commands/support.js';
 
 export function registerAuthCommand(program: Command): void {
   program

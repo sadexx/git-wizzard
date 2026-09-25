@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseBranchSuggestions, parseCommitMessage } from '@/tools/format.js';
+import { parseBranchSuggestions, parseCommitMessage } from '#tools/format.js';
 
 test('parseCommitMesssage splits subject and body', () => {
   const parsed = parseCommitMessage('Add retry logic\n\nHandle transient client failures.');

@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
 import type { GitDiff } from '@git-assistant/shared';
-import { printError, withClient } from '@/commands/support.js';
+import { printError, withClient } from '#commands/support.js';
 
 export function registerDiffCommand(program: Command): void {
   program

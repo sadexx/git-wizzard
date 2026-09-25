@@ -10,8 +10,11 @@
   "bin": {
     "git-assistant": "./dist/index.js"
   },
+  "imports": {
+    "#*": "./dist/*"
+  },
   "scripts": {
-    "build": "tsc && tsc-alias",
+    "build": "tsc",
     "test": "npm run build && node --test \"dist/**/*.test.js\"",
     "clean": "rm -rf dist"
   },

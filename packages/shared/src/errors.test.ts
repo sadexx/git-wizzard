@@ -9,7 +9,7 @@ import {
   parseWithSchema,
   providerError,
   validationError,
-} from '@/errors.js';
+} from '#errors.js';
 
 test('factory omits cause when not supplied', () => {
   const e = authError('invalid_api_key', 'bad key');

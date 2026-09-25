@@ -6,9 +6,9 @@ import {
   suggestBranchNameInputSchema,
   suggestBranchNameOutputSchema,
 } from '@git-assistant/shared';
-import { GitRepository } from '@/git/repository.js';
-import { fromResult, toolErr } from '@/tools/tool-result.js';
-import { BRANCH_SYSTEM_PROMPT, buildBranchPrompt, parseBranchSuggestions } from '@/tools/format.js';
+import { GitRepository } from '#git/repository.js';
+import { fromResult, toolErr } from '#tools/tool-result.js';
+import { BRANCH_SYSTEM_PROMPT, buildBranchPrompt, parseBranchSuggestions } from '#tools/format.js';
 
 export function registerBranchNameTool(server: McpServer): void {
   server.registerTool(

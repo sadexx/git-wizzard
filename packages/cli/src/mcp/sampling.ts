@@ -16,7 +16,7 @@ import {
   type ProviderError,
   type Result,
 } from '@git-assistant/shared';
-import type { ProviderAdapter } from '@/auth/provider-adapter.js';
+import type { ProviderAdapter } from '#auth/provider-adapter.js';
 
 /**
  * Build the sampling request handler. On any adapter failure it throws an McpError,

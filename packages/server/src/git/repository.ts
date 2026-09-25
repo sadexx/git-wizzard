@@ -16,7 +16,7 @@ import {
   type CreateBranchOutput,
   createBranchOutputSchema,
 } from '@git-assistant/shared';
-import { parseStatus, parseNumstat } from '@/git/parse.js';
+import { parseStatus, parseNumstat } from '#git/parse.js';
 
 export type RepoError = GitError | ValidationError;
 

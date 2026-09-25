@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { commitResultSchema, gitDiffSchema, gitStatusSchema } from '@/schemas/git.js';
+import { commitResultSchema, gitDiffSchema, gitStatusSchema } from '#schemas/git.js';
 
 export const toolNameSchema = z.enum([
   'get_status',

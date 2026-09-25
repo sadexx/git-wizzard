@@ -7,8 +7,11 @@
     "node": ">=22"
   },
   "main": "./dist/index.js",
+  "imports": {
+    "#*": "./dist/*"
+  },
   "scripts": {
-    "build": "tsc && tsc-alias",
+    "build": "tsc",
     "test": "npm run build && node --test \"dist/**/*.test.js\"",
     "inspect": "npm run build && npx @modelcontextprotocol/inspector node dist/index.js",
     "clean": "rm -rf dist"

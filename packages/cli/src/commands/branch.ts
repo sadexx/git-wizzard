@@ -1,7 +1,7 @@
 import { type Command, Option } from 'commander';
 import { branchTypeSchema, type BranchType } from '@git-assistant/shared';
-import { printError, withClient } from '@/commands/support.js';
-import { createActionPrompter, resolveDecision } from '@/commands/prompt.js';
+import { printError, withClient } from '#commands/support.js';
+import { createActionPrompter, resolveDecision } from '#commands/prompt.js';
 
 export function registerBranchCommand(program: Command): void {
   program

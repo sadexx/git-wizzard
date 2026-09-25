@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseBranchType } from '@/commands/branch.js';
+import { parseBranchType } from '#commands/branch.js';
 
 test('parseBranchType returns the enum value', () => {
   assert.equal(parseBranchType('feature'), 'feature');

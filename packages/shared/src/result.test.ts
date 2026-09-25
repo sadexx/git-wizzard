@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { andThen, err, isErr, isOk, map, mapErr, match, ok, tryCatchAsync, unwrapOr, type Result } from '@/result.js';
+import { andThen, err, isErr, isOk, map, mapErr, match, ok, tryCatchAsync, unwrapOr, type Result } from '#result.js';
 
 test('ok/err construct discriminated results', () => {
   assert.deepEqual(ok(1), { ok: true, value: 1 });

@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import { ok, type AuthError, type PersistedConfig, type Result } from '@git-assistant/shared';
-import { readEnvConfig, runAuthFlow, type AuthDeps, type AuthEnv, type Prompter } from '@/auth/flow.js';
-import type { ProviderAdapter, ProviderConfig } from '@/auth/provider-adapter.js';
+import { readEnvConfig, runAuthFlow, type AuthDeps, type AuthEnv, type Prompter } from '#auth/flow.js';
+import type { ProviderAdapter, ProviderConfig } from '#auth/provider-adapter.js';
 
 const emptyEnv: AuthEnv = {
   provider: undefined,

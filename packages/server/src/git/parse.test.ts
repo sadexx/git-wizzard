@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseNumstat, parseStatus } from '@/git/parse.js';
+import { parseNumstat, parseStatus } from '#git/parse.js';
 
 test('parseStatus reads branch header and file entries', () => {
   const raw = [

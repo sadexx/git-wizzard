@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeOpenAiResponse } from '@/auth/providers/openai.js';
+import { normalizeOpenAiResponse } from '#auth/providers/openai.js';
 
 test('normalizeOpenAiResponse maps content and finish_reason', () => {
   const result = normalizeOpenAiResponse(

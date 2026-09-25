@@ -7,9 +7,9 @@ import {
   parseWithSchema,
   providerError,
 } from '@git-assistant/shared';
-import { GitRepository } from '@/git/repository.js';
-import { fromResult, toolErr } from '@/tools/tool-result.js';
-import { buildCommitPrompt, COMMIT_SYSTEM_PROMPT, parseCommitMessage } from '@/tools/format.js';
+import { GitRepository } from '#git/repository.js';
+import { fromResult, toolErr } from '#tools/tool-result.js';
+import { buildCommitPrompt, COMMIT_SYSTEM_PROMPT, parseCommitMessage } from '#tools/format.js';
 
 export function registerCommitMessageTool(server: McpServer): void {
   server.registerTool(

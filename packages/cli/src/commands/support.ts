@@ -1,6 +1,6 @@
 import { formatError, type AppError } from '@git-assistant/shared';
-import { defaultAuthDeps, runAuthFlow } from '@/auth/flow.js';
-import { connectClient, type GitAssistantClient } from '@/mcp/client.js';
+import { defaultAuthDeps, runAuthFlow } from '#auth/flow.js';
+import { connectClient, type GitAssistantClient } from '#mcp/client.js';
 
 /**
  * Resolve credentials non-interactively (saved config or env only), spawn the

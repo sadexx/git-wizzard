@@ -14,7 +14,7 @@ import {
   type ProviderError,
   type Result,
 } from '@git-assistant/shared';
-import { extractHttpStatus, type ProviderAdapter } from '@/auth/provider-adapter.js';
+import { extractHttpStatus, type ProviderAdapter } from '#auth/provider-adapter.js';
 
 type GeminiContent = { role: 'user' | 'model'; parts: Array<{ text: string }> };
 

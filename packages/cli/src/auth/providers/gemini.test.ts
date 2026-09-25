@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeGeminiResponse, toGeminiInput } from '@/auth/providers/gemini.js';
+import { normalizeGeminiResponse, toGeminiInput } from '#auth/providers/gemini.js';
 
 test('toGeminiInput separates system instruction and maps assistant to model', () => {
   const out = toGeminiInput([

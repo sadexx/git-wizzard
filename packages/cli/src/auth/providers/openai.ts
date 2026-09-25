@@ -13,7 +13,7 @@ import {
   type ProviderConfig,
   type CompletionRequest,
 } from '@git-assistant/shared';
-import { extractHttpStatus, type ProviderAdapter } from '@/auth/provider-adapter.js';
+import { extractHttpStatus, type ProviderAdapter } from '#auth/provider-adapter.js';
 
 export class OpenAiAdapter implements ProviderAdapter {
   readonly provider = 'openai' as const;

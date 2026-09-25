@@ -2,8 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { CreateMessageRequest } from '@modelcontextprotocol/sdk/types.js';
 import { err, ok, providerError } from '@git-assistant/shared';
-import type { ProviderAdapter } from '@/auth/provider-adapter.js';
-import { createSamplingHandler, toCompletionRequest, toCreateMessageResult } from '@/mcp/sampling.js';
+import type { ProviderAdapter } from '#auth/provider-adapter.js';
+import { createSamplingHandler, toCompletionRequest, toCreateMessageResult } from '#mcp/sampling.js';
 
 function params(overrides: Record<string, unknown> = {}): CreateMessageRequest['params'] {
   return {

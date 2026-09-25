@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveDecision, type ActionPrompter } from '@/commands/prompt.js';
+import { resolveDecision, type ActionPrompter } from '#commands/prompt.js';
 
 function fake(choices: Array<'confirm' | 'edit' | 'abort'>, edits: string[]): ActionPrompter {
   let ci: number = 0;
