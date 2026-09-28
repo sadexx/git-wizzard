@@ -53,7 +53,7 @@ Run `git-assistant` with no arguments for the interactive menu.
 | `git-assistant status` | Current branch, upstream, ahead/behind, and changed files. |
 | `git-assistant diff [--staged]` | Unstaged (default) or staged changes with per-file line counts. |
 | `git-assistant commit [-y \| --dry-run]` | Generate a commit message from **staged** changes, then confirm, edit, or abort before committing. |
-| `git-assistant branch [--type <type>] [-y \| --dry-run]` | Suggest branch names for your **unstaged** changes and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
+| `git-assistant branch [--type <type>] [-y \| --dry-run]` | Suggest branch names for **all uncommitted work** (staged, unstaged, and new files) and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
 | `git-assistant auth [--no-validate]` | Choose a provider and model, enter an API key, and save it. |
 
 Every command acts on the repository in the current directory. `--help` works on the program and on each command.

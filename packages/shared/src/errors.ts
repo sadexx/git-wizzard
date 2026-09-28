@@ -29,6 +29,7 @@ export const gitErrorReasonSchema = z.enum([
   'command_failed',
   'parse_failed',
   'nothing_to_commit',
+  'no_changes',
   'merge_conflict',
 ]);
 export type GitErrorReason = z.infer<typeof gitErrorReasonSchema>;
