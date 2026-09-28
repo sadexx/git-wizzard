@@ -2,14 +2,25 @@ import { type Command, Option } from 'commander';
 import { branchTypeSchema, type BranchType } from '@git-assistant/shared';
 import type { GitAssistantClient } from '#mcp/client.js';
 import { printError, withClient } from '#commands/support.js';
-import { createActionPrompter, resolveDecision } from '#commands/prompt.js';
+import {
+  createActionPrompter,
+  requireConfirmMode,
+  resolveDecision,
+  type ConfirmOptions,
+  type Decision,
+} from '#commands/prompt.js';
 
 export function registerBranchCommand(program: Command): void {
   program
     .command('branch')
     .description('Suggest a branch name for the current changes and optionally create it')
     .addOption(new Option('--type <type>', 'Branch type prefix').choices([...branchTypeSchema.options]))
-    .action(async (options: { type?: string }) => {
+    .option('-y, --yes', 'Create the first suggestion without asking')
+    .addOption(new Option('--dry-run', 'Print the suggestions, one per line, without creating a branch').conflicts('yes'))
+    .action(async (options: ConfirmOptions & { type?: string }) => {
+      const mode = requireConfirmMode(options);
+      if (mode === undefined) return;
+
       const type = parseBranchType(options.type);
       await withClient(async (client: GitAssistantClient) => {
         const suggestions = await client.suggestBranchName(type !== undefined ? { type } : {});
@@ -25,11 +36,19 @@ export function registerBranchCommand(program: Command): void {
           return;
         }
 
+        if (mode === 'dry-run') {
+          process.stdout.write(`${suggestions.value.join('\n')}\n`);
+          return;
+        }
+
         process.stdout.write(`Suggestions: ${suggestions.value.join(', ')}\n`);
 
-        const decision = await resolveDecision(createActionPrompter(), 'Create branch', first);
+        const decision: Decision =
+          mode === 'yes'
+            ? { kind: 'confirm', value: first }
+            : await resolveDecision(createActionPrompter(), 'Create branch', first);
         if (decision.kind === 'abort') {
-          process.stdout.write('Aborted. No branch create.\n');
+          process.stdout.write('Aborted. No branch created.\n');
           return;
         }
 

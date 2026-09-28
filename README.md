@@ -11,8 +11,8 @@ feat(auth): resolve provider credentials lazily
 
 Git-only commands no longer require an API key.
 
-[c]confirm / [e]edit / [a]abort: c
-Created commit 3f9a1c2e on main.
+[c]onfirm / [e]dit / [a]bort: c
+Created commit 3f9a1c2e on main: feat(auth): resolve provider credentials lazily
 ```
 
 `status` and `diff` work without any setup. Only `commit` and `branch` call a model.
@@ -52,13 +52,26 @@ Run `git-assistant` with no arguments for the interactive menu.
 | `git-assistant` | Interactive menu: view diff, suggest a branch, generate a commit. |
 | `git-assistant status` | Current branch, upstream, ahead/behind, and changed files. |
 | `git-assistant diff [--staged]` | Unstaged (default) or staged changes with per-file line counts. |
-| `git-assistant commit` | Generate a commit message from **staged** changes, then confirm, edit, or abort before committing. |
-| `git-assistant branch [--type <type>]` | Suggest branch names for your **unstaged** changes and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
+| `git-assistant commit [-y \| --dry-run]` | Generate a commit message from **staged** changes, then confirm, edit, or abort before committing. |
+| `git-assistant branch [--type <type>] [-y \| --dry-run]` | Suggest branch names for your **unstaged** changes and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
 | `git-assistant auth [--no-validate]` | Choose a provider and model, enter an API key, and save it. |
 
 Every command acts on the repository in the current directory. `--help` works on the program and on each command.
 
-When confirming, choosing **edit** opens `$EDITOR` (or `$VISUAL`) with the proposed text; without an editor you get a one-line prompt instead.
+When confirming, choosing **edit** opens the same editor git uses (`GIT_EDITOR`, `core.editor`, `VISUAL`, `EDITOR`). Lines starting with `#` are ignored, and saving an empty text keeps the previous one. If the editor can't be used, you get a one-line prompt instead. `Ctrl-C` or `Ctrl-D` at the prompt aborts.
+
+### Scripting
+
+`commit` and `branch` ask for confirmation, so without a terminal they stop with an error instead of waiting. Choose explicitly:
+
+- `-y, --yes`: accept the generated message (or the first branch suggestion) without asking.
+- `--dry-run`: print only the result to stdout and change nothing.
+
+```sh
+git-assistant commit --dry-run                    # just the message
+git commit -e -m "$(git-assistant commit --dry-run)" # review it in git's own editor
+git-assistant branch --dry-run | head -n1         # best branch name
+```
 
 ## Configuration
 

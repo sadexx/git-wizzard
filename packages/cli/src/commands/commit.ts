@@ -1,13 +1,24 @@
-import type { Command } from 'commander';
+import { Option, type Command } from 'commander';
 import type { GitAssistantClient } from '#mcp/client.js';
 import { printError, withClient } from '#commands/support.js';
-import { createActionPrompter, resolveDecision } from '#commands/prompt.js';
+import {
+  createActionPrompter,
+  requireConfirmMode,
+  resolveDecision,
+  type ConfirmOptions,
+  type Decision,
+} from '#commands/prompt.js';
 
 export function registerCommitCommand(program: Command): void {
   program
     .command('commit')
     .description('Generate a commit message from staged changes and create the commit')
-    .action(async () => {
+    .option('-y, --yes', 'Commit with the generated message without asking')
+    .addOption(new Option('--dry-run', 'Print the generated message and exit without committing').conflicts('yes'))
+    .action(async (options: ConfirmOptions) => {
+      const mode = requireConfirmMode(options);
+      if (mode === undefined) return;
+
       await withClient(async (client: GitAssistantClient) => {
         const generated = await client.generateCommitMessage();
         if (!generated.ok) {
@@ -15,7 +26,16 @@ export function registerCommitCommand(program: Command): void {
           return;
         }
 
-        const decision = await resolveDecision(createActionPrompter(), 'Commit message', generated.value.message);
+        const { message } = generated.value;
+        if (mode === 'dry-run') {
+          process.stdout.write(`${message}\n`);
+          return;
+        }
+
+        const decision: Decision =
+          mode === 'yes'
+            ? { kind: 'confirm', value: message }
+            : await resolveDecision(createActionPrompter(), 'Commit message', message);
         if (decision.kind === 'abort') {
           process.stdout.write('Aborted. No commit created.\n');
           return;
@@ -27,7 +47,8 @@ export function registerCommitCommand(program: Command): void {
           return;
         }
 
-        process.stdout.write(`Created commit ${commitResult.value.sha.slice(0, 8)} on ${commitResult.value.branch}.\n`);
+        const { sha, branch, summary } = commitResult.value;
+        process.stdout.write(`Created commit ${sha.slice(0, 8)} on ${branch}: ${summary}\n`);
       });
     });
 }

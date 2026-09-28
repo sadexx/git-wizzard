@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveDecision, type ActionPrompter } from '#commands/prompt.js';
+import { confirmMode, resolveDecision, stripComments, type ActionPrompter } from '#commands/prompt.js';
 
 function fake(choices: Array<'confirm' | 'edit' | 'abort'>, edits: string[]): ActionPrompter {
   let choiceIndex: number = 0;
@@ -29,6 +29,22 @@ test('resolveDecision confirms immediately', async () => {
 
 test('resolveDecision aborts', async () => {
   assert.deepEqual(await resolveDecision(fake(['abort'], []), 'L', 'v'), { kind: 'abort' });
+});
+
+test('confirmMode: --dry-run and --yes work without a terminal', () => {
+  assert.equal(confirmMode({ dryRun: true }, false), 'dry-run');
+  assert.equal(confirmMode({ yes: true }, false), 'yes');
+});
+
+test('confirmMode prompts only when interactive', () => {
+  assert.equal(confirmMode({}, true), 'prompt');
+  assert.equal(confirmMode({}, false), undefined);
+});
+
+test('stripComments drops # lines and surrounding blank lines, keeps inner blank lines', () => {
+  assert.equal(stripComments('\nfeat: x\n\nbody\n\n# ignored\n# also ignored\n'), 'feat: x\n\nbody');
+  assert.equal(stripComments('# only comments\n'), '');
+  assert.equal(stripComments('keep #inline hash'), 'keep #inline hash');
 });
 
 test('resolveDecision edits then confirms the edited value', async () => {
