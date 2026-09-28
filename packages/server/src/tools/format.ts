@@ -1,15 +1,30 @@
 import type { BranchType, GenerateCommitMessageOutput, GitDiff, GitDiffFile } from '@git-assistant/shared';
 
 export const COMMIT_SYSTEM_PROMPT: string =
-  'You write Conventional-Commits-style git commit messages. Reply with a concise subject line ' +
-  '(<=72 chars, imperative mood) optionally followed by a blank line and a short body. No code fences.';
+  'You write git commit messages. If the recent commits show a consistent convention (prefix words, ' +
+  'scopes, casing, ticket references), follow it exactly; otherwise use Conventional Commits. ' +
+  'Reply with a concise subject line (<=72 chars, imperative mood) optionally followed by a blank line ' +
+  'and a short body explaining why. No code fences, no quotes.';
 export const BRANCH_SYSTEM_PROMPT: string =
   'You suggest git branch names. Reply with 3-5 kebab-case names, one per line, no numbering, ' +
   'using only [a-z0-9._/-].';
 
-export function buildCommitPrompt(diff: GitDiff): string {
+/** Repository context that lets the model match local conventions. */
+export interface CommitContext {
+  readonly branch: string;
+  readonly recentSubjects: readonly string[];
+}
+
+export function buildCommitPrompt(diff: GitDiff, context: CommitContext): string {
   const fileList = diff.files.map((file: GitDiffFile) => `- ${file.path} (+${file.additions}/-${file.deletions})`).join('\n');
-  return `Staged changes (+${diff.additions}/-${diff.deletions}):\n${fileList}\n\nDiff:\n${clampPatch(diff.patch)}`;
+  const history =
+    context.recentSubjects.length > 0
+      ? `Recent commits (newest first):\n${context.recentSubjects.map((subject: string) => `- ${subject}`).join('\n')}\n\n`
+      : 'Recent commits: none (first commit).\n\n';
+  return (
+    `Branch: ${context.branch}\n\n${history}` +
+    `Staged changes (+${diff.additions}/-${diff.deletions}):\n${fileList}\n\nDiff:\n${clampPatch(diff.patch)}`
+  );
 }
 
 /** Everything uncommitted: branch names describe the work in progress, staged or not. */

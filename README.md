@@ -52,7 +52,7 @@ Run `git-assistant` with no arguments for the interactive menu.
 | `git-assistant` | Interactive menu: view diff, suggest a branch, generate a commit. |
 | `git-assistant status` | Current branch, upstream, ahead/behind, and changed files. |
 | `git-assistant diff [--staged]` | Unstaged (default) or staged changes with per-file line counts. |
-| `git-assistant commit [-y \| --dry-run]` | Generate a commit message from **staged** changes, then confirm, edit, or abort before committing. |
+| `git-assistant commit [-y \| --dry-run]` | Generate a commit message from **staged** changes in the style of your recent commits (falling back to Conventional Commits), then confirm, edit, or abort before committing. |
 | `git-assistant branch [--type <type>] [-y \| --dry-run]` | Suggest branch names for **all uncommitted work** (staged, unstaged, and new files) and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
 | `git-assistant auth [--no-validate]` | Choose a provider and model, enter an API key, and save it. |
 
@@ -86,7 +86,7 @@ Credentials come from the first source that provides them:
 
 Default models: `gpt-5.4-mini` (OpenAI) and `gemini-3.6-flash` (Gemini).
 
-> **Privacy:** `commit` and `branch` send the changed file names and the diff (truncated to about 6,000 characters) to your chosen provider. `status` and `diff` never leave your machine.
+> **Privacy:** `commit` and `branch` send the changed file names and the diff (truncated to about 6,000 characters) to your chosen provider. `commit` also sends the current branch name and the subjects of your last 10 commits so it can match your style. `status` and `diff` never leave your machine.
 
 ## How it works
 

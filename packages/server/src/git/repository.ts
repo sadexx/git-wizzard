@@ -73,6 +73,21 @@ export class GitRepository {
     return parseWithSchema(gitDiffSchema, { staged, additions, deletions, files, patch });
   }
 
+  /** Subjects of the latest non-merge commits, newest first; empty when HEAD has no commits yet. */
+  public async recentSubjects(limit: number = 10): Promise<Result<string[], RepoError>> {
+    let raw: string;
+    try {
+      // `git log` fails on an unborn HEAD; probe HEAD instead of parsing git's error text.
+      if ((await this.git.raw(['rev-parse', '--verify', '--quiet', 'HEAD']).catch(() => '')).trim() === '') {
+        return ok([]);
+      }
+      raw = await this.git.raw(['log', '--no-merges', `-n${limit}`, '--format=%s']);
+    } catch (cause) {
+      return err(gitError('command_failed', 'git log failed', cause));
+    }
+    return ok(raw.split('\n').filter((line: string) => line.trim() !== ''));
+  }
+
   /** Commit staged changes. Refuses when nothing is staged (a precondition, not a mutation guard). */
   public async createCommit(message: string): Promise<Result<CommitResult, RepoError>> {
     const staged = await this.diff(true);

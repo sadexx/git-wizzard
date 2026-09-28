@@ -1,7 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { GitDiff } from '@git-assistant/shared';
-import { buildBranchPrompt, hasChanges, parseBranchSuggestions, parseCommitMessage } from '#tools/format.js';
+import {
+  buildBranchPrompt,
+  buildCommitPrompt,
+  hasChanges,
+  parseBranchSuggestions,
+  parseCommitMessage,
+} from '#tools/format.js';
 
 function diff(staged: boolean, paths: string[], patch: string = ''): GitDiff {
   return {
@@ -64,6 +70,20 @@ test('hasChanges is false only when nothing is staged, modified, or untracked', 
   assert.equal(hasChanges(none), false);
   assert.equal(hasChanges({ ...none, untracked: ['x'] }), true);
   assert.equal(hasChanges({ ...none, staged: diff(true, ['x']) }), true);
+});
+
+test('buildCommitPrompt gives the branch and recent subjects as style context', () => {
+  const prompt = buildCommitPrompt(diff(true, ['src/a.ts'], '+x'), {
+    branch: 'fix/login-timeout',
+    recentSubjects: ['feature: add login', 'fix: typo'],
+  });
+  assert.match(prompt, /^Branch: fix\/login-timeout\n\nRecent commits \(newest first\):\n- feature: add login\n- fix: typo\n/);
+  assert.match(prompt, /Staged changes \(\+0\/-0\):\n- src\/a\.ts \(\+1\/-0\)\n\nDiff:\n\+x$/);
+});
+
+test('buildCommitPrompt says so when there is no history yet', () => {
+  const prompt = buildCommitPrompt(diff(true, ['a']), { branch: 'main', recentSubjects: [] });
+  assert.match(prompt, /Recent commits: none \(first commit\)\./);
 });
 
 test('parseBranchSuggestions de-duplicates and caps at five', () => {

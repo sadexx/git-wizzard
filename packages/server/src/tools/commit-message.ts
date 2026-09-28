@@ -32,12 +32,17 @@ export function registerCommitMessageTool(server: McpServer): void {
       if (diff.value.files.length === 0) {
         return toolErr(gitError('nothing_to_commit', 'No staged changes to summarize'));
       }
+      const status = await repo.value.status();
+      if (!status.ok) return toolErr(status.error);
+      const recentSubjects = await repo.value.recentSubjects();
+      if (!recentSubjects.ok) return toolErr(recentSubjects.error);
+      const prompt = buildCommitPrompt(diff.value, { branch: status.value.branch, recentSubjects: recentSubjects.value });
 
       let sampled: CreateMessageResult;
       try {
         sampled = await server.server.createMessage({
           systemPrompt: COMMIT_SYSTEM_PROMPT,
-          messages: [{ role: 'user', content: { type: 'text', text: buildCommitPrompt(diff.value) } }],
+          messages: [{ role: 'user', content: { type: 'text', text: prompt } }],
           maxTokens: 400,
         });
       } catch (cause) {
