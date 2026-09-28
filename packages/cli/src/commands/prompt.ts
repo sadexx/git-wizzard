@@ -7,11 +7,16 @@ import { env as processEnv, stderr, stdin, stdout } from 'node:process';
 
 export type Decision = { readonly kind: 'confirm'; readonly value: string } | { readonly kind: 'abort' };
 
+export type Choice = 'confirm' | 'edit' | 'regenerate' | 'abort';
+
 export interface ActionPrompter {
   show(label: string, value: string): void;
-  choose(): Promise<'confirm' | 'edit' | 'abort'>;
+  choose(canRegenerate: boolean): Promise<Choice>;
   edit(current: string): Promise<string>;
 }
+
+/** Produces a fresh proposal, or undefined to keep the current one (e.g. the retry failed and was reported). */
+export type Regenerate = () => Promise<string | undefined>;
 
 /** How a generated proposal is settled: ask the user, accept it as-is, or only print it. */
 export type ConfirmMode = 'prompt' | 'yes' | 'dry-run';
@@ -44,15 +49,21 @@ export function requireConfirmMode(options: ConfirmOptions): ConfirmMode | undef
   return mode;
 }
 
-/** Pure loop: show -> choose -> (edit and repeat | confirm | abort). */
-export async function resolveDecision(prompter: ActionPrompter, label: string, initial: string): Promise<Decision> {
+/** Pure loop: show -> choose -> (edit or regenerate, and repeat | confirm | abort). */
+export async function resolveDecision(
+  prompter: ActionPrompter,
+  label: string,
+  initial: string,
+  regenerate?: Regenerate,
+): Promise<Decision> {
   let value = initial;
   for (;;) {
     prompter.show(label, value);
-    const choice = await prompter.choose();
+    const choice = await prompter.choose(regenerate !== undefined);
     if (choice === 'confirm') return { kind: 'confirm', value };
     if (choice === 'abort') return { kind: 'abort' };
-    value = await prompter.edit(value);
+    if (choice === 'edit') value = await prompter.edit(value);
+    else if (regenerate !== undefined) value = (await regenerate()) ?? value;
   }
 }
 
@@ -70,15 +81,17 @@ export function createActionPrompter(): ActionPrompter {
     show(label, value) {
       stdout.write(`\n${label}:\n${value}\n\n`);
     },
-    async choose() {
+    async choose(canRegenerate) {
+      const question = canRegenerate ? '[c]onfirm / [e]dit / [r]egenerate / [a]bort: ' : '[c]onfirm / [e]dit / [a]bort: ';
       for (;;) {
-        const answer = await ask('[c]onfirm / [e]dit / [a]bort: ');
+        const answer = await ask(question);
         if (answer === null) return 'abort';
         const normalized = answer.trim().toLowerCase();
         if (normalized === 'c' || normalized === 'confirm') return 'confirm';
         if (normalized === 'e' || normalized === 'edit') return 'edit';
+        if (canRegenerate && (normalized === 'r' || normalized === 'regenerate')) return 'regenerate';
         if (normalized === 'a' || normalized === 'abort') return 'abort';
-        stdout.write('Please enter c, e, or a.\n');
+        stdout.write(canRegenerate ? 'Please enter c, e, r, or a.\n' : 'Please enter c, e, or a.\n');
       }
     },
     async edit(current) {

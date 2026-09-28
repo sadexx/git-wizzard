@@ -6,6 +6,7 @@ export interface ConfirmPromptProps {
   value: string;
   onConfirm: (value: string) => void;
   onAbort: () => void;
+  onRegenerate?: () => void;
   allowEdit?: boolean;
 }
 
@@ -14,6 +15,7 @@ export function ConfirmPrompt({
   value,
   onConfirm,
   onAbort,
+  onRegenerate,
   allowEdit = true,
 }: ConfirmPromptProps): ReactElement {
   const [current, setCurrent] = useState(value);
@@ -38,6 +40,7 @@ export function ConfirmPrompt({
     if (input === 'c' || key.return) onConfirm(current);
     else if (input === 'a' || key.escape) onAbort();
     else if (input === 'e' && allowEdit) setEditing(true);
+    else if (input === 'r' && onRegenerate !== undefined) onRegenerate();
   });
 
   return (
@@ -52,7 +55,9 @@ export function ConfirmPrompt({
         <Text>{current}</Text>
       )}
       <Text dimColor>
-        {editing ? 'Type to edit · Enter/Esc to finish' : `[c]onfirm · ${allowEdit ? '[e]dit · ' : ''}[a]bort`}
+        {editing
+          ? 'Type to edit · Enter/Esc to finish'
+          : `[c]onfirm · ${allowEdit ? '[e]dit · ' : ''}${onRegenerate !== undefined ? '[r]egenerate · ' : ''}[a]bort`}
       </Text>
     </Box>
   );

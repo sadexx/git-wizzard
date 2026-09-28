@@ -32,10 +32,14 @@ export type GetDiffInput = z.infer<typeof getDiffInputSchema>;
 export const getDiffOutputSchema = gitDiffSchema;
 export type GetDiffOutput = z.infer<typeof getDiffOutputSchema>;
 
+/** Free-text intent from the user ("why"), passed to the model alongside the diff. */
+export const generationHintSchema = z.string().min(1).max(500);
+
 export const suggestBranchNameInputSchema = z
   .object({
     repoPath: z.string().min(1).optional(),
     type: branchTypeSchema.optional(),
+    hint: generationHintSchema.optional(),
   })
   .strict();
 export type SuggestBranchNameInput = z.infer<typeof suggestBranchNameInputSchema>;
@@ -49,6 +53,7 @@ export type SuggestBranchNameOutput = z.infer<typeof suggestBranchNameOutputSche
 export const generateCommitMessageInputSchema = z
   .object({
     repoPath: z.string().min(1).optional(),
+    hint: generationHintSchema.optional(),
   })
   .strict();
 export type GenerateCommitMessageInput = z.infer<typeof generateCommitMessageInputSchema>;

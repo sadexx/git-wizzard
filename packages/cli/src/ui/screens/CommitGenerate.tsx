@@ -15,7 +15,7 @@ type Phase =
 
 export function CommitGenerate({ client, onBack }: { client: GitAssistantClient; onBack: () => void }): ReactElement {
   const run = useCallback(() => client.generateCommitMessage(), [client]);
-  const { state } = useMcpTool(run);
+  const { state, reload } = useMcpTool(run);
   const [phase, setPhase] = useState<Phase>({ kind: 'review' });
 
   const commit = useCallback(
@@ -41,6 +41,7 @@ export function CommitGenerate({ client, onBack }: { client: GitAssistantClient;
     (input: string, key: Key) => {
       if (phase.kind === 'done' || phase.kind === 'failed' || state.status === 'error') {
         if (key.escape || input === 'b') onBack();
+        else if (input === 'r' && state.status === 'error') reload();
       }
     },
     { isActive: !(state.status === 'success' && phase.kind === 'review') },
@@ -51,13 +52,21 @@ export function CommitGenerate({ client, onBack }: { client: GitAssistantClient;
     return (
       <Box flexDirection="column">
         <Text color="red">{state.message}</Text>
-        <Text dimColor>b/Esc: back</Text>
+        <Text dimColor>r: retry · b/Esc: back</Text>
       </Box>
     );
   }
 
   if (phase.kind === 'review') {
-    return <ConfirmPrompt label="Commit message" value={state.data.message} onConfirm={commit} onAbort={onBack} />;
+    return (
+      <ConfirmPrompt
+        label="Commit message"
+        value={state.data.message}
+        onConfirm={commit}
+        onAbort={onBack}
+        onRegenerate={reload}
+      />
+    );
   }
   if (phase.kind === 'committing') return <Spinner label="Creating commit..." />;
   if (phase.kind === 'done') {

@@ -36,7 +36,11 @@ export function registerCommitMessageTool(server: McpServer): void {
       if (!status.ok) return toolErr(status.error);
       const recentSubjects = await repo.value.recentSubjects();
       if (!recentSubjects.ok) return toolErr(recentSubjects.error);
-      const prompt = buildCommitPrompt(diff.value, { branch: status.value.branch, recentSubjects: recentSubjects.value });
+      const prompt = buildCommitPrompt(
+        diff.value,
+        { branch: status.value.branch, recentSubjects: recentSubjects.value },
+        input.hint,
+      );
 
       let sampled: CreateMessageResult;
       try {

@@ -29,11 +29,21 @@ import { createSamplingHandler, type AdapterResolver } from '#mcp/sampling.js';
 
 export type ClientError = AppError;
 
+/** Options shared by the AI-backed tools; `hint` is the user's stated intent. */
+export interface GenerationOptions {
+  readonly hint?: string | undefined;
+  readonly repoPath?: string;
+}
+
+export interface SuggestBranchOptions extends GenerationOptions {
+  readonly type?: BranchType | undefined;
+}
+
 export interface GitAssistantClient {
   getStatus(repoPath?: string): Promise<Result<GitStatus, ClientError>>;
   getDiff(options?: { staged?: boolean; repoPath?: string }): Promise<Result<GitDiff, ClientError>>;
-  suggestBranchName(options?: { type?: BranchType; repoPath?: string }): Promise<Result<string[], ClientError>>;
-  generateCommitMessage(repoPath?: string): Promise<Result<GenerateCommitMessageOutput, ClientError>>;
+  suggestBranchName(options?: SuggestBranchOptions): Promise<Result<string[], ClientError>>;
+  generateCommitMessage(options?: GenerationOptions): Promise<Result<GenerateCommitMessageOutput, ClientError>>;
   createCommit(options: { message: string; repoPath?: string }): Promise<Result<CommitResult, ClientError>>;
   createBranch(options: { name: string; repoPath?: string }): Promise<Result<CreateBranchOutput, ClientError>>;
   close(): Promise<void>;
@@ -96,11 +106,10 @@ class StdioGitAssistantClient implements GitAssistantClient {
     return raw.ok ? parseWithSchema(getDiffOutputSchema, raw.value) : raw;
   }
 
-  public async suggestBranchName(
-    options: { type?: BranchType; repoPath?: string } = {},
-  ): Promise<Result<string[], ClientError>> {
+  public async suggestBranchName(options: SuggestBranchOptions = {}): Promise<Result<string[], ClientError>> {
     const args: Record<string, unknown> = {};
     if (options.type !== undefined) args['type'] = options.type;
+    if (options.hint !== undefined) args['hint'] = options.hint;
     if (options.repoPath !== undefined) args['repoPath'] = options.repoPath;
 
     const raw = await this.rawCall('suggest_branch_name', args);
@@ -110,8 +119,14 @@ class StdioGitAssistantClient implements GitAssistantClient {
     return parsed.ok ? ok(parsed.value.suggestions) : parsed;
   }
 
-  public async generateCommitMessage(repoPath?: string): Promise<Result<GenerateCommitMessageOutput, ClientError>> {
-    const raw = await this.rawCall('generate_commit_message', repoPath !== undefined ? { repoPath } : {});
+  public async generateCommitMessage(
+    options: GenerationOptions = {},
+  ): Promise<Result<GenerateCommitMessageOutput, ClientError>> {
+    const args: Record<string, unknown> = {};
+    if (options.hint !== undefined) args['hint'] = options.hint;
+    if (options.repoPath !== undefined) args['repoPath'] = options.repoPath;
+
+    const raw = await this.rawCall('generate_commit_message', args);
     return raw.ok ? parseWithSchema(generateCommitMessageOutputSchema, raw.value) : raw;
   }
 

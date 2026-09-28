@@ -15,14 +15,14 @@ export interface CommitContext {
   readonly recentSubjects: readonly string[];
 }
 
-export function buildCommitPrompt(diff: GitDiff, context: CommitContext): string {
+export function buildCommitPrompt(diff: GitDiff, context: CommitContext, hint: string | undefined): string {
   const fileList = diff.files.map((file: GitDiffFile) => `- ${file.path} (+${file.additions}/-${file.deletions})`).join('\n');
   const history =
     context.recentSubjects.length > 0
       ? `Recent commits (newest first):\n${context.recentSubjects.map((subject: string) => `- ${subject}`).join('\n')}\n\n`
       : 'Recent commits: none (first commit).\n\n';
   return (
-    `Branch: ${context.branch}\n\n${history}` +
+    `${authorNote(hint)}Branch: ${context.branch}\n\n${history}` +
     `Staged changes (+${diff.additions}/-${diff.deletions}):\n${fileList}\n\nDiff:\n${clampPatch(diff.patch)}`
   );
 }
@@ -38,8 +38,12 @@ export function hasChanges(changes: WorkingChanges): boolean {
   return changes.staged.files.length > 0 || changes.unstaged.files.length > 0 || changes.untracked.length > 0;
 }
 
-export function buildBranchPrompt(changes: WorkingChanges, type: BranchType | undefined): string {
-  const prefix = type !== undefined ? `Preferred prefix/type: ${type}.\n` : '';
+export function buildBranchPrompt(
+  changes: WorkingChanges,
+  type: BranchType | undefined,
+  hint: string | undefined,
+): string {
+  const prefix = `${authorNote(hint)}${type !== undefined ? `Preferred prefix/type: ${type}.\n` : ''}`;
   const changed = new Set([...changes.staged.files, ...changes.unstaged.files].map((file: GitDiffFile) => file.path));
   const fileList = [
     ...[...changed].map((path: string) => `- ${path}`),
@@ -82,6 +86,11 @@ export function parseBranchSuggestions(text: string): string[] {
 /** Our charset plus the `git check-ref-format --branch` rules that charset alone doesn't rule out. */
 function isValidBranchName(name: string): boolean {
   return /^[a-z0-9._/-]+$/.test(name) && !/(^|\/)[.-]|\.\.|\/\/|[/.]$|\.lock(\/|$)/.test(name);
+}
+
+/** The user's stated intent leads the prompt: it explains the "why" a diff can't show. */
+function authorNote(hint: string | undefined): string {
+  return hint !== undefined && hint.trim() !== '' ? `Author's note on intent: ${hint.trim()}\n\n` : '';
 }
 
 /** Truncate a patch so prompts stay within a sane token budget. */

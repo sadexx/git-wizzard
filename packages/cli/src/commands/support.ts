@@ -1,4 +1,5 @@
-import type { AppError } from '@git-assistant/shared';
+import { InvalidArgumentError, Option } from 'commander';
+import { generationHintSchema, type AppError } from '@git-assistant/shared';
 import { resolveConfiguredAdapter } from '#auth/flow.js';
 import { renderError } from '#errors.js';
 import { connectClient, type GitAssistantClient } from '#mcp/client.js';
@@ -22,6 +23,22 @@ export async function withClient(use: (client: GitAssistantClient) => Promise<vo
 }
 
 export function printError(error: AppError): void {
-  process.stderr.write(`${renderError(error)}\n`);
+  printRecoverableError(error);
   process.exitCode = 1;
+}
+
+/** Report an error the user can recover from in the same run (e.g. a failed regenerate): no exit code. */
+export function printRecoverableError(error: AppError): void {
+  process.stderr.write(`${renderError(error)}\n`);
+}
+
+/** `--hint <text>`, validated with the tool's own schema so bad input fails before any work starts. */
+export function hintOption(): Option {
+  return new Option('--hint <text>', 'Tell the model the intent behind the change (why, not what)').argParser(
+    (value: string) => {
+      const hint = value.trim();
+      if (!generationHintSchema.safeParse(hint).success) throw new InvalidArgumentError('Expected 1-500 characters.');
+      return hint;
+    },
+  );
 }

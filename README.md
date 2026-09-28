@@ -52,13 +52,15 @@ Run `git-assistant` with no arguments for the interactive menu.
 | `git-assistant` | Interactive menu: view diff, suggest a branch, generate a commit. |
 | `git-assistant status` | Current branch, upstream, ahead/behind, and changed files. |
 | `git-assistant diff [--staged]` | Unstaged (default) or staged changes with per-file line counts. |
-| `git-assistant commit [-y \| --dry-run]` | Generate a commit message from **staged** changes in the style of your recent commits (falling back to Conventional Commits), then confirm, edit, or abort before committing. |
-| `git-assistant branch [--type <type>] [-y \| --dry-run]` | Suggest branch names for **all uncommitted work** (staged, unstaged, and new files) and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
+| `git-assistant commit [--hint <text>] [-y \| --dry-run]` | Generate a commit message from **staged** changes in the style of your recent commits (falling back to Conventional Commits), then confirm, edit, regenerate, or abort before committing. |
+| `git-assistant branch [--type <type>] [--hint <text>] [-y \| --dry-run]` | Suggest branch names for **all uncommitted work** (staged, unstaged, and new files) and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
 | `git-assistant auth [--no-validate]` | Choose a provider and model, enter an API key, and save it. |
 
 Every command acts on the repository in the current directory. `--help` works on the program and on each command. Output is colored in a terminal and plain when piped; set `NO_COLOR=1` to turn colors off.
 
-When confirming, choosing **edit** opens the same editor git uses (`GIT_EDITOR`, `core.editor`, `VISUAL`, `EDITOR`). Lines starting with `#` are ignored, and saving an empty text keeps the previous one. If the editor can't be used, you get a one-line prompt instead. `Ctrl-C` or `Ctrl-D` at the prompt aborts.
+A diff shows *what* changed, not *why*. Pass `--hint` to tell the model the intent, for example `git-assistant commit --hint "retry on 429 from the payments API"` (up to 500 characters).
+
+When confirming, **regenerate** asks the model for a fresh proposal (a failed retry keeps the current one). **Edit** opens the same editor git uses (`GIT_EDITOR`, `core.editor`, `VISUAL`, `EDITOR`). Lines starting with `#` are ignored, and saving an empty text keeps the previous one. If the editor can't be used, you get a one-line prompt instead. `Ctrl-C` or `Ctrl-D` at the prompt aborts.
 
 ### Scripting
 

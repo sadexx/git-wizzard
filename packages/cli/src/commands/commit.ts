@@ -1,12 +1,13 @@
 import { Option, type Command } from 'commander';
 import type { GitAssistantClient } from '#mcp/client.js';
-import { printError, withClient } from '#commands/support.js';
+import { hintOption, printError, printRecoverableError, withClient } from '#commands/support.js';
 import {
   createActionPrompter,
   requireConfirmMode,
   resolveDecision,
   type ConfirmOptions,
   type Decision,
+  type Regenerate,
 } from '#commands/prompt.js';
 
 export function registerCommitCommand(program: Command): void {
@@ -15,12 +16,13 @@ export function registerCommitCommand(program: Command): void {
     .description('Generate a commit message from staged changes and create the commit')
     .option('-y, --yes', 'Commit with the generated message without asking')
     .addOption(new Option('--dry-run', 'Print the generated message and exit without committing').conflicts('yes'))
-    .action(async (options: ConfirmOptions) => {
+    .addOption(hintOption())
+    .action(async (options: ConfirmOptions & { hint?: string }) => {
       const mode = requireConfirmMode(options);
       if (mode === undefined) return;
 
       await withClient(async (client: GitAssistantClient) => {
-        const generated = await client.generateCommitMessage();
+        const generated = await client.generateCommitMessage({ hint: options.hint });
         if (!generated.ok) {
           printError(generated.error);
           return;
@@ -32,10 +34,17 @@ export function registerCommitCommand(program: Command): void {
           return;
         }
 
+        const regenerate: Regenerate = async () => {
+          process.stdout.write('Regenerating...\n');
+          const again = await client.generateCommitMessage({ hint: options.hint });
+          if (again.ok) return again.value.message;
+          printRecoverableError(again.error);
+          return undefined;
+        };
         const decision: Decision =
           mode === 'yes'
             ? { kind: 'confirm', value: message }
-            : await resolveDecision(createActionPrompter(), 'Commit message', message);
+            : await resolveDecision(createActionPrompter(), 'Commit message', message, regenerate);
         if (decision.kind === 'abort') {
           process.stdout.write('Aborted. No commit created.\n');
           return;

@@ -59,6 +59,7 @@ test('buildBranchPrompt covers staged, unstaged, and untracked work', () => {
       untracked: ['src/new.ts'],
     },
     'fix',
+    undefined,
   );
   assert.match(prompt, /^Preferred prefix\/type: fix\./);
   assert.match(prompt, /- src\/a\.ts\n- src\/shared\.ts\n- src\/b\.ts\n- src\/new\.ts \(new, untracked\)/);
@@ -73,17 +74,26 @@ test('hasChanges is false only when nothing is staged, modified, or untracked', 
 });
 
 test('buildCommitPrompt gives the branch and recent subjects as style context', () => {
-  const prompt = buildCommitPrompt(diff(true, ['src/a.ts'], '+x'), {
-    branch: 'fix/login-timeout',
-    recentSubjects: ['feature: add login', 'fix: typo'],
-  });
+  const prompt = buildCommitPrompt(
+    diff(true, ['src/a.ts'], '+x'),
+    { branch: 'fix/login-timeout', recentSubjects: ['feature: add login', 'fix: typo'] },
+    undefined,
+  );
   assert.match(prompt, /^Branch: fix\/login-timeout\n\nRecent commits \(newest first\):\n- feature: add login\n- fix: typo\n/);
   assert.match(prompt, /Staged changes \(\+0\/-0\):\n- src\/a\.ts \(\+1\/-0\)\n\nDiff:\n\+x$/);
 });
 
 test('buildCommitPrompt says so when there is no history yet', () => {
-  const prompt = buildCommitPrompt(diff(true, ['a']), { branch: 'main', recentSubjects: [] });
+  const prompt = buildCommitPrompt(diff(true, ['a']), { branch: 'main', recentSubjects: [] }, undefined);
   assert.match(prompt, /Recent commits: none \(first commit\)\./);
+});
+
+test('prompts lead with the author note when a hint is given, and omit it when blank', () => {
+  const context = { branch: 'main', recentSubjects: [] };
+  const changes = { staged: diff(true, ['a']), unstaged: diff(false, []), untracked: [] };
+  assert.match(buildCommitPrompt(diff(true, ['a']), context, ' retry on 429 '), /^Author's note on intent: retry on 429\n\nBranch:/);
+  assert.match(buildBranchPrompt(changes, 'fix', 'retry on 429'), /^Author's note on intent: retry on 429\n\nPreferred/);
+  assert.doesNotMatch(buildCommitPrompt(diff(true, ['a']), context, '  '), /Author's note/);
 });
 
 test('parseBranchSuggestions de-duplicates and caps at five', () => {

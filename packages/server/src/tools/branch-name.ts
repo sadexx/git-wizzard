@@ -58,7 +58,7 @@ export function registerBranchNameTool(server: McpServer): void {
       try {
         sampled = await server.server.createMessage({
           systemPrompt: BRANCH_SYSTEM_PROMPT,
-          messages: [{ role: 'user', content: { type: 'text', text: buildBranchPrompt(changes, input.type) } }],
+          messages: [{ role: 'user', content: { type: 'text', text: buildBranchPrompt(changes, input.type, input.hint) } }],
           maxTokens: 200,
         });
       } catch (cause) {

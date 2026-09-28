@@ -16,9 +16,13 @@ type Phase =
 
 export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; onBack: () => void }): ReactElement {
   const run = useCallback(() => client.suggestBranchName({}), [client]);
-  const { state } = useMcpTool(run);
+  const { state, reload } = useMcpTool(run);
   const [phase, setPhase] = useState<Phase>({ kind: 'choosing', index: 0 });
   const suggestions = state.status === 'success' ? state.data : [];
+  const regenerate = useCallback(() => {
+    setPhase({ kind: 'choosing', index: 0 });
+    reload();
+  }, [reload]);
 
   const createBranch = useCallback(
     (name: string) => {
@@ -43,6 +47,7 @@ export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; 
     (input: string, key: Key) => {
       if (state.status !== 'success') {
         if (key.escape || input === 'b') onBack();
+        else if (input === 'r' && state.status === 'error') regenerate();
         return;
       }
       if (phase.kind === 'choosing') {
@@ -52,7 +57,8 @@ export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; 
         else if (key.return) {
           const name = suggestions[phase.index];
           if (name !== undefined) setPhase({ kind: 'confirming', name });
-        } else if (key.escape || input === 'b') onBack();
+        } else if (input === 'r') regenerate();
+        else if (key.escape || input === 'b') onBack();
       } else if (phase.kind === 'done' || phase.kind === 'failed') {
         if (key.escape || input === 'b') onBack();
       }
@@ -65,7 +71,7 @@ export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; 
     return (
       <Box flexDirection="column">
         <Text color="red">{state.message}</Text>
-        <Text dimColor>b/Esc: back</Text>
+        <Text dimColor>r: retry · b/Esc: back</Text>
       </Box>
     );
   }
@@ -107,7 +113,7 @@ export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; 
           {name}
         </Text>
       ))}
-      <Text dimColor>↑/↓ select · Enter confirm · b/Esc back</Text>
+      <Text dimColor>↑/↓ select · Enter confirm · r regenerate · b/Esc back</Text>
     </Box>
   );
 }
