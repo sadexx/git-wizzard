@@ -6,6 +6,7 @@ import { registerDiffCommand } from '#commands/diff.js';
 import { registerBranchCommand } from '#commands/branch.js';
 import { registerCommitCommand } from '#commands/commit.js';
 import { registerPrCommand } from '#commands/pr.js';
+import { registerHookCommand } from '#commands/hook.js';
 import { startInteractiveUi } from '#ui/App.js';
 
 function buildProgram(): Command {
@@ -22,6 +23,7 @@ function buildProgram(): Command {
   registerBranchCommand(program);
   registerCommitCommand(program);
   registerPrCommand(program);
+  registerHookCommand(program);
 
   return program;
 }
