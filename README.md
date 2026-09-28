@@ -59,7 +59,7 @@ Run `git-assistant` with no arguments for the interactive menu.
 | `git-assistant auth status` | Show the provider, model, masked key, and source (environment or saved config) that the AI commands will use. Exits 1 when nothing is set up. No network. |
 | `git-assistant auth logout` | Delete the saved credentials. Environment variables are not affected. |
 
-Every command acts on the repository in the current directory. `--help` works on the program and on each command. Output is colored in a terminal and plain when piped; set `NO_COLOR=1` to turn colors off.
+Every command acts on the repository in the current directory. `--help` works on the program and on each command. Output is colored in a terminal and plain when piped; set `NO_COLOR=1` to turn colors off. While the model works, a spinner with elapsed seconds shows on stderr (terminal only).
 
 A diff shows *what* changed, not *why*. Pass `--hint` to tell the model the intent, for example `git-assistant commit --hint "retry on 429 from the payments API"` (up to 500 characters).
 

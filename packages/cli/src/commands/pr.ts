@@ -1,7 +1,7 @@
 import { InvalidArgumentError, Option, type Command } from 'commander';
 import type { GitAssistantClient } from '#mcp/client.js';
 import { hintOption, printError, withClient } from '#commands/support.js';
-import { plural } from '#format.js';
+import { plural, withProgress } from '#format.js';
 
 export function registerPrCommand(program: Command): void {
   program
@@ -18,7 +18,9 @@ export function registerPrCommand(program: Command): void {
     .addOption(hintOption())
     .action(async (options: { base?: string; hint?: string }) => {
       await withClient(async (client: GitAssistantClient) => {
-        const generated = await client.generatePrDescription({ base: options.base, hint: options.hint });
+        const generated = await withProgress('Writing pull request description', () =>
+          client.generatePrDescription({ base: options.base, hint: options.hint }),
+        );
         if (!generated.ok) {
           printError(generated.error);
           return;

@@ -56,6 +56,35 @@ export function stylePatch(patch: string, style: Style): string {
     .join('\n');
 }
 
+const SPINNER_FRAMES = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏';
+
+/**
+ * Spinner plus elapsed seconds on `stream` while `work` runs, erased when it settles.
+ * Silent unless the stream is an interactive terminal, so pipes and logs stay clean.
+ */
+export async function withProgress<T>(
+  label: string,
+  work: () => Promise<T>,
+  stream: Pick<NodeJS.WriteStream, 'isTTY' | 'write'> = process.stderr,
+): Promise<T> {
+  if (stream.isTTY !== true || process.env['TERM'] === 'dumb') return work();
+  const started = Date.now();
+  let frame = 0;
+  const draw = (): void => {
+    const seconds = Math.floor((Date.now() - started) / 1000);
+    stream.write(`\r${SPINNER_FRAMES.charAt(frame % SPINNER_FRAMES.length)} ${label}${seconds > 0 ? ` (${seconds}s)` : ''}`);
+    frame += 1;
+  };
+  draw();
+  const timer = setInterval(draw, 80);
+  try {
+    return await work();
+  } finally {
+    clearInterval(timer);
+    stream.write('\r\x1b[2K');
+  }
+}
+
 /** "1 file", "2 files". */
 export function plural(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? '' : 's'}`;

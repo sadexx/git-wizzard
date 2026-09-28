@@ -2,6 +2,7 @@ import { type Command, Option } from 'commander';
 import { branchTypeSchema, type BranchType } from '@git-assistant/shared';
 import type { GitAssistantClient } from '#mcp/client.js';
 import { hintOption, printError, printRecoverableError, withClient } from '#commands/support.js';
+import { withProgress } from '#format.js';
 import {
   createActionPrompter,
   requireConfirmMode,
@@ -25,7 +26,9 @@ export function registerBranchCommand(program: Command): void {
 
       const request = { type: parseBranchType(options.type), hint: options.hint };
       await withClient(async (client: GitAssistantClient) => {
-        const suggestions = await client.suggestBranchName(request);
+        const suggest = (label: string): ReturnType<GitAssistantClient['suggestBranchName']> =>
+          withProgress(label, () => client.suggestBranchName(request));
+        const suggestions = await suggest('Suggesting branch names');
         if (!suggestions.ok) {
           printError(suggestions.error);
           return;
@@ -46,8 +49,7 @@ export function registerBranchCommand(program: Command): void {
         process.stdout.write(`Suggestions: ${suggestions.value.join(', ')}\n`);
 
         const regenerate: Regenerate = async () => {
-          process.stdout.write('Regenerating...\n');
-          const again = await client.suggestBranchName(request);
+          const again = await suggest('Regenerating branch names');
           if (!again.ok) {
             printRecoverableError(again.error);
             return undefined;

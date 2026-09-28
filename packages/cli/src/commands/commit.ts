@@ -1,6 +1,7 @@
 import { Option, type Command } from 'commander';
 import type { GitAssistantClient } from '#mcp/client.js';
 import { hintOption, printError, printRecoverableError, withClient } from '#commands/support.js';
+import { withProgress } from '#format.js';
 import {
   createActionPrompter,
   requireConfirmMode,
@@ -22,7 +23,9 @@ export function registerCommitCommand(program: Command): void {
       if (mode === undefined) return;
 
       await withClient(async (client: GitAssistantClient) => {
-        const generated = await client.generateCommitMessage({ hint: options.hint });
+        const generate = (label: string): ReturnType<GitAssistantClient['generateCommitMessage']> =>
+          withProgress(label, () => client.generateCommitMessage({ hint: options.hint }));
+        const generated = await generate('Generating commit message');
         if (!generated.ok) {
           printError(generated.error);
           return;
@@ -35,8 +38,7 @@ export function registerCommitCommand(program: Command): void {
         }
 
         const regenerate: Regenerate = async () => {
-          process.stdout.write('Regenerating...\n');
-          const again = await client.generateCommitMessage({ hint: options.hint });
+          const again = await generate('Regenerating commit message');
           if (again.ok) return again.value.message;
           printRecoverableError(again.error);
           return undefined;

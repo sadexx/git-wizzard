@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyPatch, plural, stylePatch, type Style } from '#format.js';
+import { classifyPatch, plural, stylePatch, withProgress, type Style } from '#format.js';
 
 /** Marks styled spans as <format>text</format> so tests can see what gets colored. */
 const tagged: Style = (format, text) => `<${format}>${text}</${format}>`;
@@ -38,6 +38,27 @@ test('stylePatch colors by kind and leaves context lines alone', () => {
     out,
     '<bold>diff --git a/x b/x</bold>\n<cyan>@@ -1 +1 @@</cyan>\n ctx\n<red>-a</red>\n<green>+b</green>',
   );
+});
+
+function recorder(isTTY: boolean): { isTTY: boolean; write(text: string): boolean; out: string[] } {
+  const out: string[] = [];
+  return { isTTY, out, write: (text: string) => out.push(text) > 0 };
+}
+
+test('withProgress draws a labeled spinner on a terminal and erases it, even on failure', async () => {
+  const stream = recorder(true);
+  assert.equal(await withProgress('Working', async () => 42, stream), 42);
+  assert.deepEqual(stream.out, ['\r⠋ Working', '\r\x1b[2K']);
+
+  const failing = recorder(true);
+  await assert.rejects(withProgress('Working', async () => Promise.reject(new Error('boom')), failing), /boom/);
+  assert.equal(failing.out.at(-1), '\r\x1b[2K');
+});
+
+test('withProgress writes nothing when the stream is not a terminal', async () => {
+  const stream = recorder(false);
+  assert.equal(await withProgress('Working', async () => 'done', stream), 'done');
+  assert.deepEqual(stream.out, []);
 });
 
 test('plural', () => {
