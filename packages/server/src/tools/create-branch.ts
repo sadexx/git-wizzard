@@ -16,7 +16,7 @@ export function registerCreateBranchTool(server: McpServer): void {
       description: 'Create and switch to a new git branch. Mutates repository state.',
       inputSchema: createBranchInputSchema,
       outputSchema: createBranchOutputSchema,
-      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: false },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     },
     async (input: CreateBranchInput) => {
       const repo = await GitRepository.open(input.repoPath);

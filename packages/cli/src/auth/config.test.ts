@@ -4,7 +4,7 @@ import { mkdtemp, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { PersistedConfig } from '@git-assistant/shared';
-import { configPath, loadConfig, saveConfig } from '#auth/config.js';
+import { configPath, deleteConfig, loadConfig, saveConfig } from '#auth/config.js';
 
 async function tempDir(): Promise<string> {
   return mkdtemp(join(tmpdir(), 'git-assistant'));
@@ -30,6 +30,14 @@ test('saveConfig wirtes a 0600 file on POSIX', { skip: process.platform === 'win
   await saveConfig({ version: 1, provider: 'gemini', apiKey: 'k', model: 'm' }, dir);
   const info = await stat(configPath(dir));
   assert.equal(info.mode & 0o777, 0o600);
+});
+
+test('deleteConfig removes the file, then reports nothing to remove', async () => {
+  const dir = await tempDir();
+  await saveConfig({ version: 1, provider: 'openai', apiKey: 'k', model: 'm' }, dir);
+  assert.deepEqual(await deleteConfig(dir), { ok: true, value: true });
+  assert.deepEqual(await loadConfig(dir), { ok: true, value: null });
+  assert.deepEqual(await deleteConfig(dir), { ok: true, value: false });
 });
 
 test('loadConfig rejects a malformed config', async () => {

@@ -1,6 +1,6 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { readFile, writeFile, mkdir, chmod } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, chmod, rm } from 'node:fs/promises';
 import {
   authError,
   err,
@@ -55,6 +55,17 @@ export async function saveConfig(
     return err(authError('config_write_failed', `Failed to write ${file}`, cause));
   }
   return ok(undefined);
+}
+
+/** Remove the saved config. ok(false) when there was nothing to remove. */
+export async function deleteConfig(baseDir: string = defaultBaseDir()): Promise<Result<boolean, AuthError>> {
+  const file = configPath(baseDir);
+  try {
+    await rm(file);
+  } catch (cause) {
+    return isNotFound(cause) ? ok(false) : err(authError('config_write_failed', `Failed to delete ${file}`, cause));
+  }
+  return ok(true);
 }
 
 export function configPath(baseDir: string = defaultBaseDir()): string {

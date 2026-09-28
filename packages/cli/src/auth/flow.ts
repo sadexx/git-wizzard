@@ -115,6 +115,32 @@ export async function runAuthFlow(
   return interactive(deps, validate);
 }
 
+export interface ActiveAuth {
+  readonly config: ProviderConfig;
+  readonly source: 'environment' | 'config';
+  /** A saved config exists but environment credentials take precedence over it. */
+  readonly savedIgnored: boolean;
+}
+
+/** Which credentials AI-backed commands would use right now, without touching the network. */
+export async function activeAuth(
+  deps: Pick<AuthDeps, 'env' | 'loadConfig'>,
+): Promise<Result<ActiveAuth, AuthError>> {
+  const fromEnv = readEnvConfig(deps.env);
+  if (!fromEnv.ok) return err(fromEnv.error);
+  const loaded = await deps.loadConfig();
+
+  if (fromEnv.value !== null) {
+    return ok({ config: fromEnv.value, source: 'environment', savedIgnored: loaded.ok && loaded.value !== null });
+  }
+  if (!loaded.ok) return err(loaded.error);
+  if (loaded.value === null) {
+    return err(authError('missing_credentials', 'No saved credentials and no API key in the environment'));
+  }
+  const { version: _version, ...config } = loaded.value;
+  return ok({ config, source: 'config', savedIgnored: false });
+}
+
 async function finalize(
   deps: AuthDeps,
   config: ProviderConfig,

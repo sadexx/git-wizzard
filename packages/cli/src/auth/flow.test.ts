@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import { ok, type AuthError, type PersistedConfig, type Result } from '@git-assistant/shared';
-import { readEnvConfig, runAuthFlow, type AuthDeps, type AuthEnv, type Prompter } from '#auth/flow.js';
+import { activeAuth, readEnvConfig, runAuthFlow, type AuthDeps, type AuthEnv, type Prompter } from '#auth/flow.js';
 import type { ProviderAdapter, ProviderConfig } from '#auth/provider-adapter.js';
 
 const emptyEnv: AuthEnv = {
@@ -105,4 +105,23 @@ test('runAuthFlow prompts and persists interactively', async () => {
   assert.equal(saved.length, 1);
   const [savedConfig] = saved;
   assert.equal(savedConfig?.apiKey, 'interactive-key');
+});
+
+test('activeAuth reports env credentials and flags a shadowed saved config', async () => {
+  const saved: PersistedConfig = { version: 1, provider: 'openai', apiKey: 'k', model: 'm' };
+  const result = await activeAuth(deps({ env: { ...emptyEnv, geminiKey: 'g' }, loadConfig: async () => ok(saved) }));
+  assert.deepEqual(result, {
+    ok: true,
+    value: { config: { provider: 'gemini', apiKey: 'g', model: 'gemini-3.6-flash' }, source: 'environment', savedIgnored: true },
+  });
+});
+
+test('activeAuth falls back to the saved config, and fails when nothing is set', async () => {
+  const saved: PersistedConfig = { version: 1, provider: 'openai', apiKey: 'k', model: 'm' };
+  assert.deepEqual(await activeAuth(deps({ loadConfig: async () => ok(saved) })), {
+    ok: true,
+    value: { config: { provider: 'openai', apiKey: 'k', model: 'm' }, source: 'config', savedIgnored: false },
+  });
+  const missing = await activeAuth(deps({}));
+  assert.equal(!missing.ok && missing.error.reason, 'missing_credentials');
 });

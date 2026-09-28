@@ -55,6 +55,8 @@ Run `git-assistant` with no arguments for the interactive menu.
 | `git-assistant commit [--hint <text>] [-y \| --dry-run]` | Generate a commit message from **staged** changes in the style of your recent commits (falling back to Conventional Commits), then confirm, edit, regenerate, or abort before committing. |
 | `git-assistant branch [--type <type>] [--hint <text>] [-y \| --dry-run]` | Suggest branch names for **all uncommitted work** (staged, unstaged, and new files) and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
 | `git-assistant auth [--no-validate]` | Choose a provider and model, enter an API key, and save it. |
+| `git-assistant auth status` | Show the provider, model, masked key, and source (environment or saved config) that `commit` and `branch` will use. Exits 1 when nothing is set up. No network. |
+| `git-assistant auth logout` | Delete the saved credentials. Environment variables are not affected. |
 
 Every command acts on the repository in the current directory. `--help` works on the program and on each command. Output is colored in a terminal and plain when piped; set `NO_COLOR=1` to turn colors off.
 
@@ -85,6 +87,8 @@ Credentials come from the first source that provides them:
    - `GIT_ASSISTANT_PROVIDER`: `openai` or `gemini`; required to choose when both keys are set
    - `GIT_ASSISTANT_MODEL`: override the model used with the key above
 2. **Saved config** at `~/.git-assistant/config.json`, written by `git-assistant auth` with `0600` permissions.
+
+Run `git-assistant auth status` to see which source wins.
 
 Default models: `gpt-5.4-mini` (OpenAI) and `gemini-3.6-flash` (Gemini).
 
