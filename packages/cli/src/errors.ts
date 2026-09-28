@@ -51,6 +51,10 @@ function errorHint(error: AppError): string | undefined {
           return 'Branch names are suggested from your uncommitted changes; make some first.';
         case 'merge_conflict':
           return 'Resolve the conflicts, then try again.';
+        case 'base_not_found':
+          return 'Pass the target branch with --base <branch> (e.g. --base origin/main).';
+        case 'no_commits':
+          return 'Commit your work first, or pick a different --base.';
         default:
           return undefined;
       }

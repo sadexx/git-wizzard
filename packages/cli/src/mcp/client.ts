@@ -8,6 +8,7 @@ import {
   err,
   fromWireError,
   generateCommitMessageOutputSchema,
+  generatePrDescriptionOutputSchema,
   getDiffOutputSchema,
   getStatusOutputSchema,
   ok,
@@ -20,6 +21,7 @@ import {
   type CommitResult,
   type CreateBranchOutput,
   type GenerateCommitMessageOutput,
+  type GeneratePrDescriptionOutput,
   type GitDiff,
   type GitStatus,
   type ProviderError,
@@ -39,11 +41,16 @@ export interface SuggestBranchOptions extends GenerationOptions {
   readonly type?: BranchType | undefined;
 }
 
+export interface PrDescriptionOptions extends GenerationOptions {
+  readonly base?: string | undefined;
+}
+
 export interface GitAssistantClient {
   getStatus(repoPath?: string): Promise<Result<GitStatus, ClientError>>;
   getDiff(options?: { staged?: boolean; repoPath?: string }): Promise<Result<GitDiff, ClientError>>;
   suggestBranchName(options?: SuggestBranchOptions): Promise<Result<string[], ClientError>>;
   generateCommitMessage(options?: GenerationOptions): Promise<Result<GenerateCommitMessageOutput, ClientError>>;
+  generatePrDescription(options?: PrDescriptionOptions): Promise<Result<GeneratePrDescriptionOutput, ClientError>>;
   createCommit(options: { message: string; repoPath?: string }): Promise<Result<CommitResult, ClientError>>;
   createBranch(options: { name: string; repoPath?: string }): Promise<Result<CreateBranchOutput, ClientError>>;
   close(): Promise<void>;
@@ -128,6 +135,18 @@ class StdioGitAssistantClient implements GitAssistantClient {
 
     const raw = await this.rawCall('generate_commit_message', args);
     return raw.ok ? parseWithSchema(generateCommitMessageOutputSchema, raw.value) : raw;
+  }
+
+  public async generatePrDescription(
+    options: PrDescriptionOptions = {},
+  ): Promise<Result<GeneratePrDescriptionOutput, ClientError>> {
+    const args: Record<string, unknown> = {};
+    if (options.base !== undefined) args['base'] = options.base;
+    if (options.hint !== undefined) args['hint'] = options.hint;
+    if (options.repoPath !== undefined) args['repoPath'] = options.repoPath;
+
+    const raw = await this.rawCall('generate_pr_description', args);
+    return raw.ok ? parseWithSchema(generatePrDescriptionOutputSchema, raw.value) : raw;
   }
 
   public async createCommit(options: {

@@ -9,6 +9,12 @@ export const BRANCH_SYSTEM_PROMPT: string =
   'You suggest git branch names. Reply with 3-5 kebab-case names, one per line, no numbering, ' +
   'using only [a-z0-9._/-].';
 
+export const PR_SYSTEM_PROMPT: string =
+  'You write pull request descriptions. Reply with a title (<=72 chars) on the first line, a blank line, ' +
+  'then a Markdown body: one or two sentences on what the change does and why, then a bullet list of ' +
+  'notable changes. Call out breaking changes, migrations, or follow-ups only if there are any. ' +
+  'Do not wrap the reply in code fences.';
+
 /** Repository context that lets the model match local conventions. */
 export interface CommitContext {
   readonly branch: string;
@@ -53,6 +59,32 @@ export function buildBranchPrompt(
   return `${prefix}Changed files:\n${fileList}\n\nDiff:\n${clampPatch(patch)}`;
 }
 
+/** Everything a PR contains: the commits ahead of `base` and their combined diff. */
+export interface PrContext {
+  readonly base: string;
+  readonly branch: string;
+  readonly log: string;
+  readonly diff: GitDiff;
+}
+
+export function buildPrPrompt(context: PrContext, hint: string | undefined): string {
+  const fileList = context.diff.files
+    .map((file: GitDiffFile) => `- ${file.path} (+${file.additions}/-${file.deletions})`)
+    .join('\n');
+  return (
+    `${authorNote(hint)}Branch ${context.branch} into ${context.base}.\n\n` +
+    `Commits (oldest first):\n${clampPatch(context.log, 3000)}\n\n` +
+    `Changed files (+${context.diff.additions}/-${context.diff.deletions}):\n${fileList}\n\n` +
+    `Diff:\n${clampPatch(context.diff.patch)}`
+  );
+}
+
+/** Title + Markdown body; tolerates a "# " heading or "Title:" label on the first line. */
+export function parsePrDescription(text: string): { title: string; body: string } {
+  const { subject, body = '' } = parseCommitMessage(text.trim().replace(/^(?:#+\s*|title:\s*)/i, ''));
+  return { title: subject, body };
+}
+
 /** Split model output into subject/body/message. Subject is trimmed of wrapping quotes and clamped to 72 chars. */
 export function parseCommitMessage(text: string): GenerateCommitMessageOutput {
   const [firstLine = '', ...bodyLines] = text.trim().split('\n');
@@ -93,7 +125,7 @@ function authorNote(hint: string | undefined): string {
   return hint !== undefined && hint.trim() !== '' ? `Author's note on intent: ${hint.trim()}\n\n` : '';
 }
 
-/** Truncate a patch so prompts stay within a sane token budget. */
+/** Truncate a patch (or commit log) so prompts stay within a sane token budget. */
 function clampPatch(patch: string, maxChars = 6000): string {
   return patch.length <= maxChars ? patch : `${patch.slice(0, maxChars)}\n... [diff truncated]`;
 }

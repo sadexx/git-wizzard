@@ -8,6 +8,7 @@ export const toolNameSchema = z.enum([
   'generate_commit_message',
   'create_commit',
   'create_branch',
+  'generate_pr_description',
 ]);
 export type ToolName = z.infer<typeof toolNameSchema>;
 
@@ -65,6 +66,29 @@ export const generateCommitMessageOutputSchema = z
   })
   .strict();
 export type GenerateCommitMessageOutput = z.infer<typeof generateCommitMessageOutputSchema>;
+
+export const generatePrDescriptionInputSchema = z
+  .object({
+    repoPath: z.string().min(1).optional(),
+    /** Branch or commit the PR targets; a leading "-" would be read by git as an option. */
+    base: z
+      .string()
+      .min(1)
+      .regex(/^[^-]/, 'must not start with "-"')
+      .optional(),
+    hint: generationHintSchema.optional(),
+  })
+  .strict();
+export type GeneratePrDescriptionInput = z.infer<typeof generatePrDescriptionInputSchema>;
+export const generatePrDescriptionOutputSchema = z
+  .object({
+    title: z.string().min(1).max(72),
+    body: z.string(),
+    base: z.string().min(1),
+    commits: z.number().int().positive(),
+  })
+  .strict();
+export type GeneratePrDescriptionOutput = z.infer<typeof generatePrDescriptionOutputSchema>;
 
 export const createCommitInputSchema = z
   .object({

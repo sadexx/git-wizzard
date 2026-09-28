@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtemp } from 'node:fs/promises';
+import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { GitRepository } from '#git/repository.js';
@@ -49,4 +49,44 @@ test('recentSubjects lists newest first, skips merges, and honors the limit', as
   const repo = await open(dir);
   assert.deepEqual(await repo.recentSubjects(), { ok: true, value: ['second', 'on side', 'first'] });
   assert.deepEqual(await repo.recentSubjects(1), { ok: true, value: ['second'] });
+});
+
+test('defaultBase prefers origin/HEAD, falls back to main, and is undefined before any commit', async () => {
+  const { dir, git } = await tempRepo();
+  const repo = await open(dir);
+  assert.equal(await repo.defaultBase(), undefined);
+  git('commit', '-q', '--allow-empty', '-m', 'init');
+  assert.equal(await repo.defaultBase(), 'main');
+  git('update-ref', 'refs/remotes/origin/trunk', 'HEAD');
+  git('symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/trunk');
+  assert.equal(await repo.defaultBase(), 'origin/trunk');
+  assert.equal(await repo.hasCommit('nope'), false);
+});
+
+test('branchChanges covers only the non-merge commits since the branch left base', async () => {
+  const { dir, git } = await tempRepo();
+  git('commit', '-q', '--allow-empty', '-m', 'init');
+  git('checkout', '-q', '-b', 'feature');
+  await writeFile(join(dir, 'a.txt'), 'one\n');
+  git('add', 'a.txt');
+  git('commit', '-q', '-m', 'add a\n\nbecause reasons');
+  git('checkout', '-q', 'main');
+  await writeFile(join(dir, 'b.txt'), 'two\n');
+  git('add', 'b.txt');
+  git('commit', '-q', '-m', 'main moves on');
+  git('checkout', '-q', 'feature');
+  git('merge', '-q', '--no-ff', '-m', 'Merge main', 'main');
+
+  const repo = await open(dir);
+  const changes = await repo.branchChanges('main');
+  assert.equal(changes.ok, true);
+  if (!changes.ok) return;
+  assert.equal(changes.value.commits, 1);
+  assert.equal(changes.value.log, '- add a\n  because reasons');
+  assert.deepEqual(
+    changes.value.diff.files.map((file: { path: string }) => file.path),
+    ['a.txt'],
+  );
+  const none = await repo.branchChanges('feature');
+  assert.equal(none.ok && none.value.commits, 0);
 });

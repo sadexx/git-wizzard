@@ -15,13 +15,13 @@ Git-only commands no longer require an API key.
 Created commit 3f9a1c2e on main: feat(auth): resolve provider credentials lazily
 ```
 
-`status` and `diff` work without any setup. Only `commit` and `branch` call a model.
+`status` and `diff` work without any setup. Only `commit`, `branch`, and `pr` call a model.
 
 ## Requirements
 
 - Node.js 22 or newer
 - git
-- An OpenAI or Gemini API key (for `commit` and `branch`)
+- An OpenAI or Gemini API key (for `commit`, `branch`, and `pr`)
 
 ## Install
 
@@ -54,8 +54,9 @@ Run `git-assistant` with no arguments for the interactive menu.
 | `git-assistant diff [--staged]` | Unstaged (default) or staged changes with per-file line counts. |
 | `git-assistant commit [--hint <text>] [-y \| --dry-run]` | Generate a commit message from **staged** changes in the style of your recent commits (falling back to Conventional Commits), then confirm, edit, regenerate, or abort before committing. |
 | `git-assistant branch [--type <type>] [--hint <text>] [-y \| --dry-run]` | Suggest branch names for **all uncommitted work** (staged, unstaged, and new files) and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
+| `git-assistant pr [--base <branch>] [--hint <text>]` | Write a pull request title and Markdown description from the commits on this branch that aren't on `<branch>` (default: origin's default branch, else `origin/main`, `origin/master`, `main`, `master`). Prints to stdout; changes nothing. Uncommitted work isn't included. |
 | `git-assistant auth [--no-validate]` | Choose a provider and model, enter an API key, and save it. |
-| `git-assistant auth status` | Show the provider, model, masked key, and source (environment or saved config) that `commit` and `branch` will use. Exits 1 when nothing is set up. No network. |
+| `git-assistant auth status` | Show the provider, model, masked key, and source (environment or saved config) that the AI commands will use. Exits 1 when nothing is set up. No network. |
 | `git-assistant auth logout` | Delete the saved credentials. Environment variables are not affected. |
 
 Every command acts on the repository in the current directory. `--help` works on the program and on each command. Output is colored in a terminal and plain when piped; set `NO_COLOR=1` to turn colors off.
@@ -75,7 +76,10 @@ When confirming, **regenerate** asks the model for a fresh proposal (a failed re
 git-assistant commit --dry-run                    # just the message
 git commit -e -m "$(git-assistant commit --dry-run)" # review it in git's own editor
 git-assistant branch --dry-run | head -n1         # best branch name
+git-assistant pr > pr.md && gh pr create --title "$(head -n1 pr.md)" --body "$(tail -n +3 pr.md)"
 ```
+
+`pr` prints only the description to stdout (title, blank line, body); the "Describing N commits not on <base>" note goes to stderr.
 
 ## Configuration
 
@@ -92,13 +96,13 @@ Run `git-assistant auth status` to see which source wins.
 
 Default models: `gpt-5.4-mini` (OpenAI) and `gemini-3.6-flash` (Gemini).
 
-> **Privacy:** `commit` and `branch` send the changed file names and the diff (truncated to about 6,000 characters) to your chosen provider. `commit` also sends the current branch name and the subjects of your last 10 commits so it can match your style. `status` and `diff` never leave your machine.
+> **Privacy:** `commit`, `branch`, and `pr` send the changed file names and the diff (truncated to about 6,000 characters) to your chosen provider. `commit` also sends the current branch name and the subjects of your last 10 commits so it can match your style; `pr` sends the branch names and the messages of the commits it describes. `status` and `diff` never leave your machine.
 
 ## How it works
 
 The project is an npm workspace with three packages:
 
-- **`packages/server`** is an [MCP](https://modelcontextprotocol.io) server that exposes git tools (`get_status`, `get_diff`, `suggest_branch_name`, `generate_commit_message`, `create_commit`, `create_branch`). It never holds API keys. When it needs text generated, it asks the client via MCP *sampling*.
+- **`packages/server`** is an [MCP](https://modelcontextprotocol.io) server that exposes git tools (`get_status`, `get_diff`, `suggest_branch_name`, `generate_commit_message`, `generate_pr_description`, `create_commit`, `create_branch`). It never holds API keys. When it needs text generated, it asks the client via MCP *sampling*.
 - **`packages/cli`** is the `git-assistant` command. It starts the server as a subprocess and answers sampling requests with your configured provider. Credentials are resolved only when a tool actually samples.
 - **`packages/shared`** holds the schemas, the `Result` type, and typed errors used by both sides.
 

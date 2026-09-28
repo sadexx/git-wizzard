@@ -4,9 +4,11 @@ import type { GitDiff } from '@git-assistant/shared';
 import {
   buildBranchPrompt,
   buildCommitPrompt,
+  buildPrPrompt,
   hasChanges,
   parseBranchSuggestions,
   parseCommitMessage,
+  parsePrDescription,
 } from '#tools/format.js';
 
 function diff(staged: boolean, paths: string[], patch: string = ''): GitDiff {
@@ -94,6 +96,21 @@ test('prompts lead with the author note when a hint is given, and omit it when b
   assert.match(buildCommitPrompt(diff(true, ['a']), context, ' retry on 429 '), /^Author's note on intent: retry on 429\n\nBranch:/);
   assert.match(buildBranchPrompt(changes, 'fix', 'retry on 429'), /^Author's note on intent: retry on 429\n\nPreferred/);
   assert.doesNotMatch(buildCommitPrompt(diff(true, ['a']), context, '  '), /Author's note/);
+});
+
+test('buildPrPrompt names both branches and includes commits, files, and the hint', () => {
+  const prompt = buildPrPrompt(
+    { base: 'origin/main', branch: 'feature/x', log: '- add a\n  because', diff: diff(false, ['a.txt'], '+one') },
+    'unblock release',
+  );
+  assert.match(prompt, /^Author's note on intent: unblock release\n\nBranch feature\/x into origin\/main\./);
+  assert.match(prompt, /Commits \(oldest first\):\n- add a\n {2}because\n/);
+  assert.match(prompt, /- a\.txt \(\+1\/-0\)[\s\S]*Diff:\n\+one$/);
+});
+
+test('parsePrDescription splits title and body, dropping a heading or "Title:" label', () => {
+  assert.deepEqual(parsePrDescription('# Add retries\n\nWhy.\n\n- one'), { title: 'Add retries', body: 'Why.\n\n- one' });
+  assert.deepEqual(parsePrDescription('Title: Add retries'), { title: 'Add retries', body: '' });
 });
 
 test('parseBranchSuggestions de-duplicates and caps at five', () => {

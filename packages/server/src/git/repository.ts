@@ -58,7 +58,41 @@ export class GitRepository {
   }
 
   public async diff(staged: boolean): Promise<Result<GitDiff, RepoError>> {
-    const scope = staged ? ['--cached'] : [];
+    return this.diffOf(staged ? ['--cached'] : [], staged);
+  }
+
+  /** The branch a PR most likely targets: origin's default branch, else main/master (remote first). */
+  public async defaultBase(): Promise<string | undefined> {
+    const originHead = await this.git.raw(['symbolic-ref', '--quiet', '--short', 'refs/remotes/origin/HEAD']).catch(() => '');
+    for (const candidate of [originHead.trim(), 'origin/main', 'origin/master', 'main', 'master']) {
+      if (candidate !== '' && (await this.hasCommit(candidate))) return candidate;
+    }
+    return undefined;
+  }
+
+  public async hasCommit(ref: string): Promise<boolean> {
+    return (await this.git.raw(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`]).catch(() => '')).trim() !== '';
+  }
+
+  /** Non-merge commits on HEAD but not on `base` (oldest first, bodies indented) and the diff since they diverged. */
+  public async branchChanges(
+    base: string,
+  ): Promise<Result<{ commits: number; log: string; diff: GitDiff }, RepoError>> {
+    const range = `${base}..HEAD`;
+    let count: string;
+    let log: string;
+    try {
+      count = await this.git.raw(['rev-list', '--count', '--no-merges', range]);
+      log = await this.git.raw(['log', '--no-merges', '--reverse', '--format=- %s%n%w(0,2,2)%b', range]);
+    } catch (cause) {
+      return err(gitError('command_failed', 'git log failed', cause));
+    }
+    const diff = await this.diffOf([`${base}...HEAD`], false);
+    if (!diff.ok) return diff;
+    return ok({ commits: Number.parseInt(count, 10), log: log.replace(/\n{2,}/g, '\n').trim(), diff: diff.value });
+  }
+
+  private async diffOf(scope: string[], staged: boolean): Promise<Result<GitDiff, RepoError>> {
     let numstat: string;
     let patch: string;
     try {
