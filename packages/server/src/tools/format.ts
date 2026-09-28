@@ -29,7 +29,7 @@ export function buildCommitPrompt(diff: GitDiff, context: CommitContext, hint: s
       : 'Recent commits: none (first commit).\n\n';
   return (
     `${authorNote(hint)}Branch: ${context.branch}\n\n${history}` +
-    `Staged changes (+${diff.additions}/-${diff.deletions}):\n${fileList}\n\nDiff:\n${clampPatch(diff.patch)}`
+    `Staged changes (+${diff.additions}/-${diff.deletions}):\n${fileList}\n\nDiff:\n${budgetPatch(diff.patch)}`
   );
 }
 
@@ -56,7 +56,7 @@ export function buildBranchPrompt(
     ...changes.untracked.map((path: string) => `- ${path} (new, untracked)`),
   ].join('\n');
   const patch = [changes.staged.patch, changes.unstaged.patch].filter((text: string) => text.trim() !== '').join('\n');
-  return `${prefix}Changed files:\n${fileList}\n\nDiff:\n${clampPatch(patch)}`;
+  return `${prefix}Changed files:\n${fileList}\n\nDiff:\n${budgetPatch(patch)}`;
 }
 
 /** Everything a PR contains: the commits ahead of `base` and their combined diff. */
@@ -73,9 +73,9 @@ export function buildPrPrompt(context: PrContext, hint: string | undefined): str
     .join('\n');
   return (
     `${authorNote(hint)}Branch ${context.branch} into ${context.base}.\n\n` +
-    `Commits (oldest first):\n${clampPatch(context.log, 3000)}\n\n` +
+    `Commits (oldest first):\n${clampText(context.log, 3000)}\n\n` +
     `Changed files (+${context.diff.additions}/-${context.diff.deletions}):\n${fileList}\n\n` +
-    `Diff:\n${clampPatch(context.diff.patch)}`
+    `Diff:\n${budgetPatch(context.diff.patch)}`
   );
 }
 
@@ -125,7 +125,57 @@ function authorNote(hint: string | undefined): string {
   return hint !== undefined && hint.trim() !== '' ? `Author's note on intent: ${hint.trim()}\n\n` : '';
 }
 
-/** Truncate a patch (or commit log) so prompts stay within a sane token budget. */
-function clampPatch(patch: string, maxChars = 6000): string {
-  return patch.length <= maxChars ? patch : `${patch.slice(0, maxChars)}\n... [diff truncated]`;
+/** Truncate text (a commit log) so prompts stay within a sane token budget. */
+function clampText(text: string, maxChars: number): string {
+  return text.length <= maxChars ? text : `${text.slice(0, maxChars)}\n... [truncated]`;
+}
+
+/** Lockfiles and build output: large, machine-written diffs that say nothing about intent. */
+const GENERATED_FILE: RegExp =
+  /(^|\/)(package-lock\.json|npm-shrinkwrap\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|Cargo\.lock|Gemfile\.lock|poetry\.lock|uv\.lock|Pipfile\.lock|composer\.lock|go\.sum|flake\.lock)$|\.min\.(js|css)$|\.map$/;
+
+/**
+ * Fit a patch into about `maxChars` without letting one big file crowd out the rest:
+ * generated files shrink to their header, every file gets an equal share of the budget,
+ * and whatever small files don't use goes to the larger ones. Cuts fall on line boundaries.
+ */
+export function budgetPatch(patch: string, maxChars: number = 6000): string {
+  const files = patch
+    .split(/^(?=diff --git )/m)
+    .filter((file: string) => file !== '')
+    .map(omitGenerated);
+  if (files.reduce((sum: number, file: string) => sum + file.length, 0) <= maxChars) return files.join('');
+
+  const allowance = new Map<string, number>();
+  let remaining = maxChars;
+  [...files]
+    .sort((a: string, b: string) => a.length - b.length)
+    .forEach((file: string, position: number, bySize: string[]) => {
+      const take = Math.min(file.length, Math.floor(remaining / (bySize.length - position)));
+      allowance.set(file, take);
+      remaining -= take;
+    });
+  const shown = files.map((file: string) => truncateLines(file, allowance.get(file) ?? 0));
+  const hidden = shown.filter((file: string) => file === '').length;
+  return `${shown.join('')}${hidden > 0 ? `... [${hidden} more file${hidden === 1 ? '' : 's'} not shown]\n` : ''}`;
+}
+
+function omitGenerated(file: string): string {
+  const [header = ''] = file.split('\n', 1);
+  // ponytail: takes the last " b/" as the path start; a path that itself contains " b/" is misread.
+  const path = /^diff --git a\/.* b\/(.*)$/.exec(header)?.[1];
+  return path !== undefined && GENERATED_FILE.test(path) ? `${header}\n[generated file, diff omitted]\n` : file;
+}
+
+/** Keep whole lines up to `maxChars`; empty when not even the header line fits (the file list still names it). */
+function truncateLines(text: string, maxChars: number): string {
+  if (text.length <= maxChars) return text;
+  const header = text.indexOf('\n');
+  if (header === -1 || header >= maxChars) return '';
+  const cut = text.lastIndexOf('\n', maxChars);
+  const dropped = text
+    .slice(cut + 1)
+    .split('\n')
+    .filter((line: string) => line !== '').length;
+  return `${text.slice(0, cut + 1)}... [${dropped} more lines truncated]\n`;
 }

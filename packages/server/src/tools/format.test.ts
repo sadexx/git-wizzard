@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { GitDiff } from '@git-assistant/shared';
 import {
+  budgetPatch,
   buildBranchPrompt,
   buildCommitPrompt,
   buildPrPrompt,
@@ -111,6 +112,37 @@ test('buildPrPrompt names both branches and includes commits, files, and the hin
 test('parsePrDescription splits title and body, dropping a heading or "Title:" label', () => {
   assert.deepEqual(parsePrDescription('# Add retries\n\nWhy.\n\n- one'), { title: 'Add retries', body: 'Why.\n\n- one' });
   assert.deepEqual(parsePrDescription('Title: Add retries'), { title: 'Add retries', body: '' });
+});
+
+function filePatch(path: string, lines: number, width: number = 10): string {
+  const body = Array.from({ length: lines }, (_: unknown, i: number) => `+${String(i).padEnd(width - 1, 'x')}\n`);
+  return `diff --git a/${path} b/${path}\n@@ -0,0 +1,${lines} @@\n${body.join('')}`;
+}
+
+test('budgetPatch leaves a small patch alone but always omits lockfile diffs', () => {
+  const small = filePatch('src/a.ts', 3);
+  assert.equal(budgetPatch(small), small);
+  assert.equal(
+    budgetPatch(`${filePatch('package-lock.json', 3)}${small}`),
+    `diff --git a/package-lock.json b/package-lock.json\n[generated file, diff omitted]\n${small}`,
+  );
+});
+
+test('budgetPatch keeps small files whole and truncates the big one on a line boundary', () => {
+  const big = filePatch('big.ts', 100, 50);
+  const small = filePatch('small.ts', 2);
+  const out = budgetPatch(`${big}${small}`, 600);
+  assert.ok(out.endsWith(small), 'small file after the big one survives intact');
+  const [kept = ''] = out.split(small);
+  assert.match(kept, /^diff --git a\/big\.ts b\/big\.ts\n@@[^\n]*\n(\+\dx*\n|\+\d\dx*\n)+\.\.\. \[\d+ more lines truncated\]\n$/);
+  assert.ok(kept.length <= 600 - small.length + 40);
+});
+
+test('budgetPatch stays bounded when there are more files than room for their headers', () => {
+  const patch = Array.from({ length: 300 }, (_: unknown, i: number) => filePatch(`src/file-${i}.ts`, 5)).join('');
+  const out = budgetPatch(patch, 6000);
+  assert.ok(out.length <= 6000 * 1.5, `got ${out.length} chars`);
+  assert.match(out, /\.\.\. \[\d+ more files not shown\]\n$/);
 });
 
 test('parseBranchSuggestions de-duplicates and caps at five', () => {

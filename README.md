@@ -96,7 +96,7 @@ Run `git-assistant auth status` to see which source wins.
 
 Default models: `gpt-5.4-mini` (OpenAI) and `gemini-3.6-flash` (Gemini).
 
-> **Privacy:** `commit`, `branch`, and `pr` send the changed file names and the diff (truncated to about 6,000 characters) to your chosen provider. `commit` also sends the current branch name and the subjects of your last 10 commits so it can match your style; `pr` sends the branch names and the messages of the commits it describes. `status` and `diff` never leave your machine.
+> **Privacy:** `commit`, `branch`, and `pr` send the changed file names and the diff to your chosen provider. The diff is capped at about 6,000 characters, shared across files so one large file can't hide the rest; lockfiles and minified or source-map files are named but their diffs are left out. `commit` also sends the current branch name and the subjects of your last 10 commits so it can match your style; `pr` sends the branch names and the messages of the commits it describes. `status` and `diff` never leave your machine.
 
 ## How it works
 
