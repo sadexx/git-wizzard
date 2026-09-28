@@ -7,8 +7,9 @@ import { Menu } from '#ui/screens/Menu.js';
 import { Diff } from '#ui/screens/Diff.js';
 import { BranchSuggest } from '#ui/screens/BranchSuggest.js';
 import { CommitGenerate } from '#ui/screens/CommitGenerate.js';
+import { PrDescribe } from '#ui/screens/PrDescribe.js';
 
-type Screen = 'menu' | 'diff' | 'branch' | 'commit';
+type Screen = 'menu' | 'diff' | 'branch' | 'commit' | 'pr';
 
 export function App({ client }: { client: GitAssistantClient }): ReactElement {
   const [screen, setScreen] = useState<Screen>('menu');
@@ -20,6 +21,8 @@ export function App({ client }: { client: GitAssistantClient }): ReactElement {
       return <BranchSuggest client={client} onBack={back} />;
     case 'commit':
       return <CommitGenerate client={client} onBack={back} />;
+    case 'pr':
+      return <PrDescribe client={client} onBack={back} />;
     case 'menu':
       return <Menu onSelect={setScreen} />;
   }

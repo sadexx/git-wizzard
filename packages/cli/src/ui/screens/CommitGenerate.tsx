@@ -14,7 +14,9 @@ type Phase =
   | { kind: 'failed'; message: string };
 
 export function CommitGenerate({ client, onBack }: { client: GitAssistantClient; onBack: () => void }): ReactElement {
-  const run = useCallback(() => client.generateCommitMessage(), [client]);
+  // Like `commit -a`: offered once there is nothing staged; nothing is staged unless the commit is confirmed.
+  const [all, setAll] = useState(false);
+  const run = useCallback(() => client.generateCommitMessage({ all }), [client, all]);
   const { state, reload } = useMcpTool(run);
   const [phase, setPhase] = useState<Phase>({ kind: 'review' });
 
@@ -22,7 +24,7 @@ export function CommitGenerate({ client, onBack }: { client: GitAssistantClient;
     (message: string) => {
       setPhase({ kind: 'committing' });
       client
-        .createCommit({ message })
+        .createCommit({ message, all })
         .then((result: Result<CommitResult, ClientError>) => {
           setPhase(
             result.ok
@@ -34,7 +36,7 @@ export function CommitGenerate({ client, onBack }: { client: GitAssistantClient;
           setPhase({ kind: 'failed', message: error instanceof Error ? error.message : String(error) }),
         );
     },
-    [client],
+    [client, all],
   );
 
   useInput(
@@ -42,6 +44,7 @@ export function CommitGenerate({ client, onBack }: { client: GitAssistantClient;
       if (phase.kind === 'done' || phase.kind === 'failed' || state.status === 'error') {
         if (key.escape || input === 'b') onBack();
         else if (input === 'r' && state.status === 'error') reload();
+        else if (input === 'a' && state.status === 'error' && !all) setAll(true);
       }
     },
     { isActive: !(state.status === 'success' && phase.kind === 'review') },
@@ -52,7 +55,7 @@ export function CommitGenerate({ client, onBack }: { client: GitAssistantClient;
     return (
       <Box flexDirection="column">
         <Text color="red">{state.message}</Text>
-        <Text dimColor>r: retry · b/Esc: back</Text>
+        <Text dimColor>r: retry · {all ? '' : 'a: include all tracked changes · '}b/Esc: back</Text>
       </Box>
     );
   }
@@ -60,7 +63,7 @@ export function CommitGenerate({ client, onBack }: { client: GitAssistantClient;
   if (phase.kind === 'review') {
     return (
       <ConfirmPrompt
-        label="Commit message"
+        label={all ? 'Commit message (all tracked changes)' : 'Commit message'}
         value={state.data.message}
         onConfirm={commit}
         onAbort={onBack}

@@ -1,12 +1,13 @@
 import { type ReactElement, useState } from 'react';
 import { Box, Text, useApp, useInput, type Key } from 'ink';
 
-type MenuTarget = 'diff' | 'branch' | 'commit';
+type MenuTarget = 'diff' | 'branch' | 'commit' | 'pr';
 
 const ITEMS: ReadonlyArray<{ key: MenuTarget | 'quit'; label: string }> = [
   { key: 'diff', label: 'View diff' },
   { key: 'branch', label: 'Suggest branch name' },
   { key: 'commit', label: 'Generate commit message' },
+  { key: 'pr', label: 'Write pull request description' },
   { key: 'quit', label: 'Quit' },
 ];
 
