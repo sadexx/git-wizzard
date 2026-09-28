@@ -25,8 +25,7 @@ import {
   type ProviderError,
   type Result,
 } from '@git-assistant/shared';
-import type { ProviderAdapter } from '#auth/provider-adapter.js';
-import { createSamplingHandler } from '#mcp/sampling.js';
+import { createSamplingHandler, type AdapterResolver } from '#mcp/sampling.js';
 
 export type ClientError = AppError;
 
@@ -42,11 +41,12 @@ export interface GitAssistantClient {
 
 /**
  * Spawn the git-assistant server as a subprocess, register the sampling handler
- * (backed by the authorized adapter), and connect. `cwd` is the target repo - the
- * server resolves its own dependencies from its install location, not from `cwd`.
+ * (which resolves the provider adapter only when a tool actually samples), and connect.
+ * `cwd` is the target repo - the server resolves its own dependencies from its install
+ * location, not from `cwd`.
  */
 export async function connectClient(
-  adapter: ProviderAdapter,
+  resolveAdapter: AdapterResolver,
   options: { cwd?: string } = {},
 ): Promise<Result<GitAssistantClient, ProviderError>> {
   let serverEntry: string;
@@ -64,7 +64,7 @@ export async function connectClient(
     stderr: 'inherit',
   });
   const client = new Client({ name: 'git-assistant-cli', version: '0.0.0' }, { capabilities: { sampling: {} } });
-  client.setRequestHandler(CreateMessageRequestSchema, createSamplingHandler(adapter));
+  client.setRequestHandler(CreateMessageRequestSchema, createSamplingHandler(resolveAdapter));
 
   try {
     await client.connect(transport);

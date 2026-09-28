@@ -171,6 +171,14 @@ export function defaultAuthDeps(): AuthDeps {
   return { env: readProcessEnv(), prompter: createReadlinePrompter(), loadConfig, saveConfig, createAdapter };
 }
 
+/**
+ * Non-interactive credentials (env or saved config only) for AI-backed tools. Never
+ * prompts: a missing setup surfaces as `missing_credentials`, whose hint points at `auth`.
+ */
+export function resolveConfiguredAdapter(): Promise<Result<ProviderAdapter, AuthError | ProviderError>> {
+  return runAuthFlow(defaultAuthDeps(), { validate: false, allowInteractive: false });
+}
+
 function readProcessEnv(): AuthEnv {
   return {
     provider: processEnv['GIT_ASSISTANT_PROVIDER'],

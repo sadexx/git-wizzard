@@ -12,6 +12,7 @@ import {
   parseWithSchema,
   providerError,
   toWireError,
+  type AppError,
   type CompletionRequest,
   type CompletionResponse,
   type ProviderError,
@@ -19,28 +20,34 @@ import {
 } from '@git-assistant/shared';
 import type { ProviderAdapter } from '#auth/provider-adapter.js';
 
+/** Supplies the provider adapter on demand, so credentials are only needed once something is sampled. */
+export type AdapterResolver = () => Promise<Result<ProviderAdapter, AppError>>;
+
 /**
- * Build the sampling request handler. On any adapter failure it throws an McpError
- * carrying the wire-form error as `data`, which the SDK turns into a JSON-RPC error -
- * surfacing on the server as a failed createMessage call, which the tool reports
- * (with the same typed error) as an isError result.
+ * Build the sampling request handler. On any failure (including unresolved credentials)
+ * it throws an McpError carrying the wire-form error as `data`, which the SDK turns into
+ * a JSON-RPC error - surfacing on the server as a failed createMessage call, which the
+ * tool reports (with the same typed error) as an isError result.
  */
 export function createSamplingHandler(
-  adapter: ProviderAdapter,
+  resolveAdapter: AdapterResolver,
 ): (request: CreateMessageRequest) => Promise<CreateMessageResult> {
   return async (request: CreateMessageRequest): Promise<CreateMessageResult> => {
     const converted = toCompletionRequest(request.params);
-    if (!converted.ok) {
-      throw new McpError(ErrorCode.InvalidParams, formatError(converted.error), toWireError(converted.error));
-    }
+    if (!converted.ok) throw samplingFailure(ErrorCode.InvalidParams, converted.error);
 
-    const completion = await adapter.complete(converted.value);
-    if (!completion.ok) {
-      throw new McpError(ErrorCode.InternalError, formatError(completion.error), toWireError(completion.error));
-    }
+    const adapter = await resolveAdapter();
+    if (!adapter.ok) throw samplingFailure(ErrorCode.InternalError, adapter.error);
+
+    const completion = await adapter.value.complete(converted.value);
+    if (!completion.ok) throw samplingFailure(ErrorCode.InternalError, completion.error);
 
     return toCreateMessageResult(completion.value);
   };
+}
+
+function samplingFailure(code: ErrorCode, error: AppError): McpError {
+  return new McpError(code, formatError(error), toWireError(error));
 }
 
 /** Pure: convert an MCP sampling request into a normalized CompletionRequest (text content only). */

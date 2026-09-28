@@ -1,9 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { McpError, type CreateMessageRequest } from '@modelcontextprotocol/sdk/types.js';
-import { err, ok, providerError } from '@git-assistant/shared';
+import { authError, err, ok, providerError } from '@git-assistant/shared';
 import type { ProviderAdapter } from '#auth/provider-adapter.js';
-import { createSamplingHandler, toCompletionRequest, toCreateMessageResult } from '#mcp/sampling.js';
+import {
+  createSamplingHandler,
+  toCompletionRequest,
+  toCreateMessageResult,
+  type AdapterResolver,
+} from '#mcp/sampling.js';
 
 function params(overrides: Record<string, unknown> = {}): CreateMessageRequest['params'] {
   return {
@@ -13,8 +18,8 @@ function params(overrides: Record<string, unknown> = {}): CreateMessageRequest['
   } as CreateMessageRequest['params'];
 }
 
-function adapter(complete: ProviderAdapter['complete']): ProviderAdapter {
-  return { provider: 'openai', model: 'm', validateKey: async () => ok(undefined), complete };
+function adapter(complete: ProviderAdapter['complete']): AdapterResolver {
+  return async () => ok({ provider: 'openai', model: 'm', validateKey: async () => ok(undefined), complete });
 }
 
 test('toCompletionRequest prepends systemPrompt and maps assitant role', () => {
@@ -88,4 +93,22 @@ test('sampling handler throws an McpError carrying the typed adapter error', asy
       return true;
     },
   );
+});
+
+test('sampling handler resolves credentials per request and reports when they are missing', async () => {
+  let resolved: number = 0;
+  const handler = createSamplingHandler(async () => {
+    resolved += 1;
+    return err(authError('missing_credentials', 'none configured'));
+  });
+  assert.equal(resolved, 0);
+  await assert.rejects(
+    () => handler({ params: params() } as CreateMessageRequest),
+    (error: unknown) => {
+      assert.ok(error instanceof McpError);
+      assert.deepEqual(error.data, { kind: 'AuthError', reason: 'missing_credentials', message: 'none configured' });
+      return true;
+    },
+  );
+  assert.equal(resolved, 1);
 });

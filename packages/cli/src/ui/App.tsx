@@ -1,6 +1,6 @@
 import { useCallback, useState, type ReactElement } from 'react';
 import { render } from 'ink';
-import { defaultAuthDeps, runAuthFlow } from '#auth/flow.js';
+import { resolveConfiguredAdapter } from '#auth/flow.js';
 import { renderError } from '#errors.js';
 import { connectClient, type GitAssistantClient } from '#mcp/client.js';
 import { Menu } from '#ui/screens/Menu.js';
@@ -25,16 +25,9 @@ export function App({ client }: { client: GitAssistantClient }): ReactElement {
   }
 }
 
-/** Connect (auth + spawn server) outside the React tree, then render the UI until exit. */
+/** Spawn the server outside the React tree, then render the UI until exit. Credentials resolve on first AI use. */
 export async function startInteractiveUi(): Promise<void> {
-  const auth = await runAuthFlow(defaultAuthDeps(), { validate: false, allowInteractive: false });
-  if (!auth.ok) {
-    process.stderr.write(`${renderError(auth.error)}\n`);
-    process.exitCode = 1;
-    return;
-  }
-
-  const connected = await connectClient(auth.value, { cwd: process.cwd() });
+  const connected = await connectClient(resolveConfiguredAdapter, { cwd: process.cwd() });
   if (!connected.ok) {
     process.stderr.write(`${renderError(connected.error)}\n`);
     process.exitCode = 1;
