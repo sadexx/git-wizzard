@@ -1,33 +1,36 @@
 import { Box, Text } from 'ink';
 import type { ReactElement } from 'react';
 import type { GitDiff } from '@git-assistant/shared';
+import { classifyPatch, plural, type PatchLineKind } from '#format.js';
+
+const LINE_PROPS: Record<PatchLineKind, { color?: string; bold?: boolean }> = {
+  header: { bold: true },
+  hunk: { color: 'cyan' },
+  add: { color: 'green' },
+  del: { color: 'red' },
+  context: {},
+};
 
 export function DiffView({ diff, maxLines = 200 }: { diff: GitDiff; maxLines?: number }): ReactElement {
-  const lines = diff.patch.split('\n');
+  if (diff.files.length === 0) return <Text>No {diff.staged ? 'staged' : 'unstaged'} changes.</Text>;
+
+  const lines = classifyPatch(diff.patch.trimEnd());
   const shown = lines.slice(0, maxLines);
-  const truncated = lines.length > maxLines;
 
   return (
     <Box flexDirection="column">
       <Text bold>
-        {diff.staged ? 'Staged' : 'Unstaged'} — +{diff.additions}/-{diff.deletions} across ${diff.files.length} file(s)
+        {`${diff.staged ? 'Staged' : 'Unstaged'} changes: ${plural(diff.files.length, 'file')}, ` +
+          `+${diff.additions} -${diff.deletions}`}
       </Text>
-      {shown.map((line: string, i: number) => {
-        const color = lineColor(line);
-        return (
-          <Text key={i} {...(color && { color })}>
-            {line === '' ? ' ' : line}
-          </Text>
-        );
-      })}
-      {truncated ? <Text dimColor>... {lines.length - maxLines} more line(s) truncated</Text> : null}
+      {shown.map(({ line, kind }: { line: string; kind: PatchLineKind }, i: number) => (
+        <Text key={i} {...LINE_PROPS[kind]}>
+          {line === '' ? ' ' : line}
+        </Text>
+      ))}
+      {lines.length > maxLines ? (
+        <Text dimColor>... {plural(lines.length - maxLines, 'more line')} not shown</Text>
+      ) : null}
     </Box>
   );
-}
-
-function lineColor(line: string): string | undefined {
-  if (line.startsWith('+') && !line.startsWith('+++')) return 'green';
-  if (line.startsWith('-') && !line.startsWith('-')) return 'red';
-  if (line.startsWith('@@')) return 'cyan';
-  return undefined;
 }

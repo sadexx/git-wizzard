@@ -56,7 +56,7 @@ Run `git-assistant` with no arguments for the interactive menu.
 | `git-assistant branch [--type <type>] [-y \| --dry-run]` | Suggest branch names for **all uncommitted work** (staged, unstaged, and new files) and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
 | `git-assistant auth [--no-validate]` | Choose a provider and model, enter an API key, and save it. |
 
-Every command acts on the repository in the current directory. `--help` works on the program and on each command.
+Every command acts on the repository in the current directory. `--help` works on the program and on each command. Output is colored in a terminal and plain when piped; set `NO_COLOR=1` to turn colors off.
 
 When confirming, choosing **edit** opens the same editor git uses (`GIT_EDITOR`, `core.editor`, `VISUAL`, `EDITOR`). Lines starting with `#` are ignored, and saving an empty text keeps the previous one. If the editor can't be used, you get a one-line prompt instead. `Ctrl-C` or `Ctrl-D` at the prompt aborts.
 
