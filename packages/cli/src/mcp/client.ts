@@ -6,6 +6,7 @@ import {
   createBranchOutputSchema,
   createCommitOutputSchema,
   err,
+  fromWireError,
   generateCommitMessageOutputSchema,
   getDiffOutputSchema,
   getStatusOutputSchema,
@@ -13,6 +14,8 @@ import {
   parseWithSchema,
   providerError,
   suggestBranchNameOutputSchema,
+  TOOL_ERROR_META_KEY,
+  type AppError,
   type BranchType,
   type CommitResult,
   type CreateBranchOutput,
@@ -21,12 +24,11 @@ import {
   type GitStatus,
   type ProviderError,
   type Result,
-  type ValidationError,
 } from '@git-assistant/shared';
 import type { ProviderAdapter } from '#auth/provider-adapter.js';
 import { createSamplingHandler } from '#mcp/sampling.js';
 
-export type ClientError = ProviderError | ValidationError;
+export type ClientError = AppError;
 
 export interface GitAssistantClient {
   getStatus(repoPath?: string): Promise<Result<GitStatus, ClientError>>;
@@ -139,7 +141,7 @@ class StdioGitAssistantClient implements GitAssistantClient {
     await this.client.close();
   }
 
-  private async rawCall(name: string, args: Record<string, unknown>): Promise<Result<unknown, ProviderError>> {
+  private async rawCall(name: string, args: Record<string, unknown>): Promise<Result<unknown, ClientError>> {
     let result: CallToolResult;
     try {
       result = (await this.client.callTool({ name, arguments: args })) as CallToolResult;
@@ -147,15 +149,21 @@ class StdioGitAssistantClient implements GitAssistantClient {
       return err(providerError('request_failed', `Tool ${name} call failed`, cause));
     }
 
-    if (result.isError === true) {
-      return err(providerError('request_failed', textContent(result) ?? `Tool ${name} returned an error`));
-    }
+    if (result.isError === true) return err(toolCallError(name, result));
     if (result.structuredContent === undefined) {
       return err(providerError('request_failed', `Tool ${name} returned no structured content`));
     }
 
     return ok(result.structuredContent);
   }
+}
+
+/** The typed error our server attaches to a failed call; a generic provider error for anything else. */
+export function toolCallError(name: string, result: CallToolResult): AppError {
+  return (
+    fromWireError(result._meta?.[TOOL_ERROR_META_KEY]) ??
+    providerError('request_failed', textContent(result) ?? `Tool ${name} returned an error`)
+  );
 }
 
 function textContent(result: CallToolResult): string | undefined {

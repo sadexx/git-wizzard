@@ -10,7 +10,7 @@ import {
   type GenerateCommitMessageOutput,
 } from '@git-assistant/shared';
 import { GitRepository } from '#git/repository.js';
-import { fromResult, toolErr } from '#tools/tool-result.js';
+import { fromResult, samplingError, toolErr } from '#tools/tool-result.js';
 import { buildCommitPrompt, COMMIT_SYSTEM_PROMPT, parseCommitMessage } from '#tools/format.js';
 
 export function registerCommitMessageTool(server: McpServer): void {
@@ -41,7 +41,7 @@ export function registerCommitMessageTool(server: McpServer): void {
           maxTokens: 400,
         });
       } catch (cause) {
-        return toolErr(providerError('request_failed', 'Sampling request failed', cause));
+        return toolErr(samplingError(cause));
       }
       if (sampled.content.type !== 'text') {
         return toolErr(providerError('invalid_response', 'Sampling returned non-text content'));

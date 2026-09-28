@@ -100,7 +100,10 @@ export async function runAuthFlow(
     }
   }
 
-  if (!deps.env.isTty || options.allowInteractive === false) {
+  if (options.allowInteractive === false) {
+    return err(authError('missing_credentials', 'No saved credentials and no API key in the environment'));
+  }
+  if (!deps.env.isTty) {
     return err(
       authError(
         'missing_credentials',

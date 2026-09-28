@@ -1,6 +1,7 @@
 import { useCallback, useState, type ReactElement } from 'react';
 import { Box, Text, useInput, type Key } from 'ink';
-import { formatError, type CreateBranchOutput, type Result } from '@git-assistant/shared';
+import type { CreateBranchOutput, Result } from '@git-assistant/shared';
+import { renderError } from '#errors.js';
 import type { ClientError, GitAssistantClient } from '#mcp/client.js';
 import { useMcpTool } from '#ui/hooks/useMcpTool.js';
 import { Spinner } from '#ui/components/Spinner.js';
@@ -28,7 +29,7 @@ export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; 
           setPhase(
             result.ok
               ? { kind: 'done', branch: result.value.branch }
-              : { kind: 'failed', message: formatError(result.error) },
+              : { kind: 'failed', message: renderError(result.error) },
           );
         })
         .catch((error: unknown) =>

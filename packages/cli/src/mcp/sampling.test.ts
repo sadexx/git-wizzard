@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { CreateMessageRequest } from '@modelcontextprotocol/sdk/types.js';
+import { McpError, type CreateMessageRequest } from '@modelcontextprotocol/sdk/types.js';
 import { err, ok, providerError } from '@git-assistant/shared';
 import type { ProviderAdapter } from '#auth/provider-adapter.js';
 import { createSamplingHandler, toCompletionRequest, toCreateMessageResult } from '#mcp/sampling.js';
@@ -71,7 +71,21 @@ test('sampling handler returns a result on success', async () => {
   assert.equal(result.stopReason, 'endTurn');
 });
 
-test('sampling handler throws on adapter error', async () => {
-  const handler = createSamplingHandler(adapter(async () => err(providerError('request_failed', 'boom'))));
-  await assert.rejects(() => handler({ params: params() } as CreateMessageRequest));
+test('sampling handler throws an McpError carrying the typed adapter error', async () => {
+  const handler = createSamplingHandler(
+    adapter(async () => err(providerError('unauthorized', 'rejected', new Error('401 bad key')))),
+  );
+  await assert.rejects(
+    () => handler({ params: params() } as CreateMessageRequest),
+    (error: unknown) => {
+      assert.ok(error instanceof McpError);
+      assert.deepEqual(error.data, {
+        kind: 'ProviderError',
+        reason: 'unauthorized',
+        message: 'rejected',
+        cause: '401 bad key',
+      });
+      return true;
+    },
+  );
 });

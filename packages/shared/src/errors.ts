@@ -8,8 +8,14 @@ export interface AuthError {
   readonly cause?: unknown;
 }
 
-export type AuthErrorReason =
-  'missing_credentials' | 'invalid_api_key' | 'unsupported_provider' | 'config_read_failed' | 'config_write_failed';
+export const authErrorReasonSchema = z.enum([
+  'missing_credentials',
+  'invalid_api_key',
+  'unsupported_provider',
+  'config_read_failed',
+  'config_write_failed',
+]);
+export type AuthErrorReason = z.infer<typeof authErrorReasonSchema>;
 
 export interface GitError {
   readonly kind: 'GitError';
@@ -18,8 +24,14 @@ export interface GitError {
   readonly cause?: unknown;
 }
 
-export type GitErrorReason =
-  'not_a_repository' | 'command_failed' | 'parse_failed' | 'nothing_to_commit' | 'merge_conflict';
+export const gitErrorReasonSchema = z.enum([
+  'not_a_repository',
+  'command_failed',
+  'parse_failed',
+  'nothing_to_commit',
+  'merge_conflict',
+]);
+export type GitErrorReason = z.infer<typeof gitErrorReasonSchema>;
 
 export interface ProviderError {
   readonly kind: 'ProviderError';
@@ -28,8 +40,14 @@ export interface ProviderError {
   readonly cause?: unknown;
 }
 
-export type ProviderErrorReason =
-  'unauthorized' | 'rate_limited' | 'request_failed' | 'empty_completion' | 'invalid_response';
+export const providerErrorReasonSchema = z.enum([
+  'unauthorized',
+  'rate_limited',
+  'request_failed',
+  'empty_completion',
+  'invalid_response',
+]);
+export type ProviderErrorReason = z.infer<typeof providerErrorReasonSchema>;
 
 export interface ValidationError {
   readonly kind: 'ValidationError';
@@ -83,6 +101,52 @@ export function isAppError(value: unknown): value is AppError {
 
   const { kind } = value as { readonly kind?: unknown };
   return typeof kind === 'string' && APP_ERROR_KINDS.includes(kind as AppError['kind']);
+}
+
+/** The underlying cause as human-readable text (e.g. git stderr, an SDK message), if it has any. */
+export function causeMessage(cause: unknown): string | undefined {
+  const text = cause instanceof Error ? cause.message : typeof cause === 'string' ? cause : '';
+  return text.trim() === '' ? undefined : text.trim();
+}
+
+const wireCauseSchema = z.string().optional();
+const wireErrorSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('AuthError'), reason: authErrorReasonSchema, message: z.string(), cause: wireCauseSchema }),
+  z.object({ kind: z.literal('GitError'), reason: gitErrorReasonSchema, message: z.string(), cause: wireCauseSchema }),
+  z.object({
+    kind: z.literal('ProviderError'),
+    reason: providerErrorReasonSchema,
+    message: z.string(),
+    cause: wireCauseSchema,
+  }),
+  z.object({
+    kind: z.literal('ValidationError'),
+    message: z.string(),
+    issues: z.array(z.object({ path: z.string(), message: z.string() })),
+  }),
+]);
+
+/**
+ * JSON-safe form of an AppError for crossing the client/server process boundary.
+ * `cause` is reduced to its message text; a ValidationError's issues already carry the detail.
+ */
+export function toWireError(error: AppError): AppError {
+  switch (error.kind) {
+    case 'AuthError':
+      return authError(error.reason, error.message, causeMessage(error.cause));
+    case 'GitError':
+      return gitError(error.reason, error.message, causeMessage(error.cause));
+    case 'ProviderError':
+      return providerError(error.reason, error.message, causeMessage(error.cause));
+    case 'ValidationError':
+      return { kind: error.kind, message: error.message, issues: error.issues };
+  }
+}
+
+/** Decode a wire error produced by `toWireError`; undefined when `value` is not one. */
+export function fromWireError(value: unknown): AppError | undefined {
+  const parsed = wireErrorSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
 }
 
 /** Single-line, user-facing rendering. Exhaustive over the union - no default arm. */

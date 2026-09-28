@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { formatError, type AppError, type Result } from '@git-assistant/shared';
+import type { AppError, Result } from '@git-assistant/shared';
+import { renderError } from '#errors.js';
 
 export type ToolState<T> =
   | { readonly status: 'loading' }
@@ -16,7 +17,7 @@ export function useMcpTool<T>(run: () => Promise<Result<T, AppError>>): { state:
         setState(
           result.ok
             ? { status: 'success', data: result.value }
-            : { status: 'error', message: formatError(result.error) },
+            : { status: 'error', message: renderError(result.error) },
         );
       })
       .catch((error: unknown) => {

@@ -11,6 +11,7 @@ import {
   ok,
   parseWithSchema,
   providerError,
+  toWireError,
   type CompletionRequest,
   type CompletionResponse,
   type ProviderError,
@@ -19,19 +20,24 @@ import {
 import type { ProviderAdapter } from '#auth/provider-adapter.js';
 
 /**
- * Build the sampling request handler. On any adapter failure it throws an McpError,
- * which the SDK turns into a JSON-RPC error - surfacing on the server as a failed
- * createMessage call, which the tool reports as an isError result.
+ * Build the sampling request handler. On any adapter failure it throws an McpError
+ * carrying the wire-form error as `data`, which the SDK turns into a JSON-RPC error -
+ * surfacing on the server as a failed createMessage call, which the tool reports
+ * (with the same typed error) as an isError result.
  */
 export function createSamplingHandler(
   adapter: ProviderAdapter,
 ): (request: CreateMessageRequest) => Promise<CreateMessageResult> {
   return async (request: CreateMessageRequest): Promise<CreateMessageResult> => {
     const converted = toCompletionRequest(request.params);
-    if (!converted.ok) throw new McpError(ErrorCode.InvalidParams, formatError(converted.error));
+    if (!converted.ok) {
+      throw new McpError(ErrorCode.InvalidParams, formatError(converted.error), toWireError(converted.error));
+    }
 
     const completion = await adapter.complete(converted.value);
-    if (!completion.ok) throw new McpError(ErrorCode.InternalError, formatError(completion.error));
+    if (!completion.ok) {
+      throw new McpError(ErrorCode.InternalError, formatError(completion.error), toWireError(completion.error));
+    }
 
     return toCreateMessageResult(completion.value);
   };

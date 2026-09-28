@@ -9,7 +9,7 @@ import {
   type SuggestBranchNameOutput,
 } from '@git-assistant/shared';
 import { GitRepository } from '#git/repository.js';
-import { fromResult, toolErr } from '#tools/tool-result.js';
+import { fromResult, samplingError, toolErr } from '#tools/tool-result.js';
 import { BRANCH_SYSTEM_PROMPT, buildBranchPrompt, parseBranchSuggestions } from '#tools/format.js';
 
 export function registerBranchNameTool(server: McpServer): void {
@@ -37,7 +37,7 @@ export function registerBranchNameTool(server: McpServer): void {
           maxTokens: 200,
         });
       } catch (cause) {
-        return toolErr(providerError('request_failed', 'Sampling request failed', cause));
+        return toolErr(samplingError(cause));
       }
       if (sampled.content.type !== 'text') {
         return toolErr(providerError('invalid_response', 'Sampling returned non-text content'));

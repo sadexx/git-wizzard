@@ -1,7 +1,7 @@
 import { useCallback, useState, type ReactElement } from 'react';
 import { render } from 'ink';
-import { formatError } from '@git-assistant/shared';
 import { defaultAuthDeps, runAuthFlow } from '#auth/flow.js';
+import { renderError } from '#errors.js';
 import { connectClient, type GitAssistantClient } from '#mcp/client.js';
 import { Menu } from '#ui/screens/Menu.js';
 import { Diff } from '#ui/screens/Diff.js';
@@ -29,18 +29,14 @@ export function App({ client }: { client: GitAssistantClient }): ReactElement {
 export async function startInteractiveUi(): Promise<void> {
   const auth = await runAuthFlow(defaultAuthDeps(), { validate: false, allowInteractive: false });
   if (!auth.ok) {
-    const message =
-      auth.error.kind === 'AuthError' && auth.error.reason === 'missing_credentials'
-        ? 'No credentials found. Run "git-assistant auth" first.'
-        : formatError(auth.error);
-    process.stderr.write(`${message}\n`);
+    process.stderr.write(`${renderError(auth.error)}\n`);
     process.exitCode = 1;
     return;
   }
 
   const connected = await connectClient(auth.value, { cwd: process.cwd() });
   if (!connected.ok) {
-    process.stderr.write(`${formatError(connected.error)}\n`);
+    process.stderr.write(`${renderError(connected.error)}\n`);
     process.exitCode = 1;
     return;
   }
