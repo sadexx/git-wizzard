@@ -88,7 +88,7 @@ test('runAuthFlow uses saved config when env is empty', async () => {
 test('runAuthFlow fails without a TTY when nothing is configured', async () => {
   const result = await runAuthFlow(deps({}), { validate: false });
   assert.equal(result.ok, false);
-  if (!result.ok) assert.equal(result.error.reason, 'missing_credentials');
+  if (!result.ok) assert.equal(result.error.reason, 'no_terminal');
 });
 
 test('runAuthFlow prompts and persists interactively', async () => {

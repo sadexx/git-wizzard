@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -11,7 +12,8 @@ import { registerCreateBranchTool } from '#tools/create-branch.js';
 import { registerPrDescriptionTool } from '#tools/pr-description.js';
 
 export function createServer(): McpServer {
-  const server = new McpServer({ name: 'git-assistant-server', version: '0.0.0' }, { capabilities: { tools: {} } });
+  const { version } = createRequire(import.meta.url)('../package.json') as { version: string };
+  const server = new McpServer({ name: 'git-assistant-server', version }, { capabilities: { tools: {} } });
   registerStatusTool(server);
   registerDiffTool(server);
   registerBranchNameTool(server);

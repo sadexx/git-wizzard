@@ -104,12 +104,7 @@ export async function runAuthFlow(
     return err(authError('missing_credentials', 'No saved credentials and no API key in the environment'));
   }
   if (!deps.env.isTty) {
-    return err(
-      authError(
-        'missing_credentials',
-        'No saved credentials and no API key in the environment; cannot prompt without a TTY',
-      ),
-    );
+    return err(authError('no_terminal', 'Setting up a provider needs an interactive terminal'));
   }
 
   return interactive(deps, validate);

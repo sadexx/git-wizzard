@@ -10,6 +10,7 @@ export interface AuthError {
 
 export const authErrorReasonSchema = z.enum([
   'missing_credentials',
+  'no_terminal',
   'invalid_api_key',
   'unsupported_provider',
   'config_read_failed',

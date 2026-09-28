@@ -32,6 +32,8 @@ function errorHint(error: AppError): string | undefined {
       switch (error.reason) {
         case 'missing_credentials':
           return 'Run "git-assistant auth" to set up a provider, or set OPENAI_API_KEY or GEMINI_API_KEY.';
+        case 'no_terminal':
+          return 'Run it in a terminal, or set OPENAI_API_KEY or GEMINI_API_KEY in the environment instead.';
         case 'invalid_api_key':
           return KEY_HINT;
         case 'unsupported_provider':

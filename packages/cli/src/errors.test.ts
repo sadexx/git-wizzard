@@ -20,6 +20,12 @@ test('renderError points auth failures at the auth command', () => {
   assert.match(renderError(providerError('unauthorized', 'rejected')), /^hint: Run "git-assistant auth"/m);
 });
 
+test('renderError does not send "auth" without a terminal back to "auth"', () => {
+  const rendered = renderError(authError('no_terminal', 'needs a terminal'));
+  assert.doesNotMatch(rendered, /git-assistant auth/);
+  assert.match(rendered, /^hint: .*OPENAI_API_KEY/m);
+});
+
 test('renderError skips detail that repeats the message and omits hint when none applies', () => {
   assert.equal(renderError(providerError('request_failed', 'boom', new Error('boom'))), 'error: boom');
 });

@@ -28,6 +28,7 @@ import {
   type Result,
 } from '@git-assistant/shared';
 import { createSamplingHandler, type AdapterResolver } from '#mcp/sampling.js';
+import { VERSION } from '#version.js';
 
 export type ClientError = AppError;
 
@@ -89,7 +90,7 @@ export async function connectClient(
     env: cleanEnv(process.env),
     stderr: 'inherit',
   });
-  const client = new Client({ name: 'git-assistant-cli', version: '0.0.0' }, { capabilities: { sampling: {} } });
+  const client = new Client({ name: 'git-assistant-cli', version: VERSION }, { capabilities: { sampling: {} } });
   client.setRequestHandler(CreateMessageRequestSchema, createSamplingHandler(resolveAdapter));
 
   try {
