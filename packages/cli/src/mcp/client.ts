@@ -41,6 +41,11 @@ export interface SuggestBranchOptions extends GenerationOptions {
   readonly type?: BranchType | undefined;
 }
 
+/** `all` works like `git commit -a`: every tracked change, not only the staged ones. */
+export interface CommitMessageOptions extends GenerationOptions {
+  readonly all?: boolean | undefined;
+}
+
 export interface PrDescriptionOptions extends GenerationOptions {
   readonly base?: string | undefined;
 }
@@ -49,9 +54,13 @@ export interface GitAssistantClient {
   getStatus(repoPath?: string): Promise<Result<GitStatus, ClientError>>;
   getDiff(options?: { staged?: boolean; repoPath?: string }): Promise<Result<GitDiff, ClientError>>;
   suggestBranchName(options?: SuggestBranchOptions): Promise<Result<string[], ClientError>>;
-  generateCommitMessage(options?: GenerationOptions): Promise<Result<GenerateCommitMessageOutput, ClientError>>;
+  generateCommitMessage(options?: CommitMessageOptions): Promise<Result<GenerateCommitMessageOutput, ClientError>>;
   generatePrDescription(options?: PrDescriptionOptions): Promise<Result<GeneratePrDescriptionOutput, ClientError>>;
-  createCommit(options: { message: string; repoPath?: string }): Promise<Result<CommitResult, ClientError>>;
+  createCommit(options: {
+    message: string;
+    all?: boolean | undefined;
+    repoPath?: string;
+  }): Promise<Result<CommitResult, ClientError>>;
   createBranch(options: { name: string; repoPath?: string }): Promise<Result<CreateBranchOutput, ClientError>>;
   close(): Promise<void>;
 }
@@ -127,10 +136,11 @@ class StdioGitAssistantClient implements GitAssistantClient {
   }
 
   public async generateCommitMessage(
-    options: GenerationOptions = {},
+    options: CommitMessageOptions = {},
   ): Promise<Result<GenerateCommitMessageOutput, ClientError>> {
     const args: Record<string, unknown> = {};
     if (options.hint !== undefined) args['hint'] = options.hint;
+    if (options.all !== undefined) args['all'] = options.all;
     if (options.repoPath !== undefined) args['repoPath'] = options.repoPath;
 
     const raw = await this.rawCall('generate_commit_message', args);
@@ -151,9 +161,11 @@ class StdioGitAssistantClient implements GitAssistantClient {
 
   public async createCommit(options: {
     message: string;
+    all?: boolean | undefined;
     repoPath?: string;
   }): Promise<Result<CommitResult, ClientError>> {
     const args: Record<string, unknown> = { message: options.message };
+    if (options.all !== undefined) args['all'] = options.all;
     if (options.repoPath !== undefined) args['repoPath'] = options.repoPath;
 
     const raw = await this.rawCall('create_commit', args);

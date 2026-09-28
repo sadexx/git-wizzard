@@ -51,10 +51,14 @@ export const suggestBranchNameOutputSchema = z
   .strict();
 export type SuggestBranchNameOutput = z.infer<typeof suggestBranchNameOutputSchema>;
 
+/** Like `git commit -a`: include modified and deleted tracked files, not only the staged ones. */
+const commitAllSchema = z.boolean().optional();
+
 export const generateCommitMessageInputSchema = z
   .object({
     repoPath: z.string().min(1).optional(),
     hint: generationHintSchema.optional(),
+    all: commitAllSchema,
   })
   .strict();
 export type GenerateCommitMessageInput = z.infer<typeof generateCommitMessageInputSchema>;
@@ -94,6 +98,7 @@ export const createCommitInputSchema = z
   .object({
     repoPath: z.string().min(1).optional(),
     message: z.string().min(1),
+    all: commitAllSchema,
   })
   .strict();
 export type CreateCommitInput = z.infer<typeof createCommitInputSchema>;

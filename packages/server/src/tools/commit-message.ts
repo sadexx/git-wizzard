@@ -18,7 +18,9 @@ export function registerCommitMessageTool(server: McpServer): void {
     'generate_commit_message',
     {
       title: 'Generate commit message',
-      description: 'Summarize staged changes into a commit message via client sampling. Produces text only.',
+      description:
+        'Summarize staged changes (or, with all, every tracked change like `git commit -a`) into a commit message ' +
+        'via client sampling. Produces text only.',
       inputSchema: generateCommitMessageInputSchema,
       outputSchema: generateCommitMessageOutputSchema,
       annotations: { readOnlyHint: true },
@@ -27,10 +29,13 @@ export function registerCommitMessageTool(server: McpServer): void {
       const repo = await GitRepository.open(input.repoPath);
       if (!repo.ok) return toolErr(repo.error);
 
-      const diff = await repo.value.diff(true);
+      const all = input.all === true;
+      const diff = await repo.value.commitDiff(all);
       if (!diff.ok) return toolErr(diff.error);
       if (diff.value.files.length === 0) {
-        return toolErr(gitError('nothing_to_commit', 'No staged changes to summarize'));
+        return toolErr(
+          gitError('nothing_to_commit', all ? 'No changes to tracked files to summarize' : 'No staged changes to summarize'),
+        );
       }
       const status = await repo.value.status();
       if (!status.ok) return toolErr(status.error);

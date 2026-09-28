@@ -122,15 +122,21 @@ export class GitRepository {
     return ok(raw.split('\n').filter((line: string) => line.trim() !== ''));
   }
 
-  /** Commit staged changes. Refuses when nothing is staged (a precondition, not a mutation guard). */
-  public async createCommit(message: string): Promise<Result<CommitResult, RepoError>> {
-    const staged = await this.diff(true);
-    if (!staged.ok) return staged;
-    if (staged.value.files.length === 0) {
-      return err(gitError('nothing_to_commit', 'No staged changes to commit'));
+  /** What a commit would contain: the index, or with `all` (`git commit -a`) every tracked change since HEAD. */
+  public async commitDiff(all: boolean): Promise<Result<GitDiff, RepoError>> {
+    // ponytail: before the first commit there is no HEAD to diff against, so `all` shows only the index.
+    return all && (await this.hasCommit('HEAD')) ? this.diffOf(['HEAD'], true) : this.diff(true);
+  }
+
+  /** Commit staged changes (or all tracked changes). Refuses when there is nothing to commit. */
+  public async createCommit(message: string, all: boolean = false): Promise<Result<CommitResult, RepoError>> {
+    const changes = await this.commitDiff(all);
+    if (!changes.ok) return changes;
+    if (changes.value.files.length === 0) {
+      return err(gitError('nothing_to_commit', all ? 'No changes to tracked files to commit' : 'No staged changes to commit'));
     }
     try {
-      await this.git.commit(message);
+      await this.git.commit(message, [], all ? { '--all': null } : {});
     } catch (cause) {
       return err(gitError('command_failed', 'git commit failed', cause));
     }

@@ -6,7 +6,7 @@ import { renderError } from '#errors.js';
 test('renderError shows the message and an actionable hint', () => {
   assert.equal(
     renderError(gitError('nothing_to_commit', 'No staged changes to summarize')),
-    'error: No staged changes to summarize\nhint: Stage your changes with "git add <path>" first.',
+    'error: No staged changes to summarize\nhint: Stage your changes with "git add <path>", or run "git-assistant commit -a" to include all tracked files.',
   );
 });
 

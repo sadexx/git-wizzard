@@ -83,7 +83,7 @@ test('buildCommitPrompt gives the branch and recent subjects as style context', 
     undefined,
   );
   assert.match(prompt, /^Branch: fix\/login-timeout\n\nRecent commits \(newest first\):\n- feature: add login\n- fix: typo\n/);
-  assert.match(prompt, /Staged changes \(\+0\/-0\):\n- src\/a\.ts \(\+1\/-0\)\n\nDiff:\n\+x$/);
+  assert.match(prompt, /Changes to commit \(\+0\/-0\):\n- src\/a\.ts \(\+1\/-0\)\n\nDiff:\n\+x$/);
 });
 
 test('buildCommitPrompt says so when there is no history yet', () => {

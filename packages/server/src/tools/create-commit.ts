@@ -13,7 +13,9 @@ export function registerCreateCommitTool(server: McpServer): void {
     'create_commit',
     {
       title: 'Create commit',
-      description: 'Create a commit from staged changes with the given message. Mutates repository state.',
+      description:
+        'Create a commit from staged changes (or, with all, every tracked change like `git commit -a`) with the ' +
+        'given message. Mutates repository state.',
       inputSchema: createCommitInputSchema,
       outputSchema: createCommitOutputSchema,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
@@ -22,7 +24,7 @@ export function registerCreateCommitTool(server: McpServer): void {
       const repo = await GitRepository.open(input.repoPath);
       if (!repo.ok) return toolErr(repo.error);
 
-      const result = await repo.value.createCommit(input.message);
+      const result = await repo.value.createCommit(input.message, input.all === true);
       return fromResult(
         result,
         (createdCommit: CommitResult) =>

@@ -15,16 +15,17 @@ export function registerCommitCommand(program: Command): void {
   program
     .command('commit')
     .description('Generate a commit message from staged changes and create the commit')
+    .option('-a, --all', 'Include all changes to tracked files, like "git commit -a" (new files still need git add)')
     .option('-y, --yes', 'Commit with the generated message without asking')
     .addOption(new Option('--dry-run', 'Print the generated message and exit without committing').conflicts('yes'))
     .addOption(hintOption())
-    .action(async (options: ConfirmOptions & { hint?: string }) => {
+    .action(async (options: ConfirmOptions & { hint?: string; all?: boolean }) => {
       const mode = requireConfirmMode(options);
       if (mode === undefined) return;
 
       await withClient(async (client: GitAssistantClient) => {
         const generate = (label: string): ReturnType<GitAssistantClient['generateCommitMessage']> =>
-          withProgress(label, () => client.generateCommitMessage({ hint: options.hint }));
+          withProgress(label, () => client.generateCommitMessage({ hint: options.hint, all: options.all }));
         const generated = await generate('Generating commit message');
         if (!generated.ok) {
           printError(generated.error);
@@ -52,7 +53,7 @@ export function registerCommitCommand(program: Command): void {
           return;
         }
 
-        const commitResult = await client.createCommit({ message: decision.value });
+        const commitResult = await client.createCommit({ message: decision.value, all: options.all });
         if (!commitResult.ok) {
           printError(commitResult.error);
           return;

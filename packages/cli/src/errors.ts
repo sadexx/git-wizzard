@@ -46,7 +46,7 @@ function errorHint(error: AppError): string | undefined {
         case 'not_a_repository':
           return 'Run git-assistant from inside a git repository.';
         case 'nothing_to_commit':
-          return 'Stage your changes with "git add <path>" first.';
+          return 'Stage your changes with "git add <path>", or run "git-assistant commit -a" to include all tracked files.';
         case 'no_changes':
           return 'Branch names are suggested from your uncommitted changes; make some first.';
         case 'merge_conflict':

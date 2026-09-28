@@ -52,7 +52,7 @@ Run `git-assistant` with no arguments for the interactive menu.
 | `git-assistant` | Interactive menu: view diff, suggest a branch, generate a commit. |
 | `git-assistant status` | Current branch, upstream, ahead/behind, and changed files. |
 | `git-assistant diff [--staged]` | Unstaged (default) or staged changes with per-file line counts. |
-| `git-assistant commit [--hint <text>] [-y \| --dry-run]` | Generate a commit message from **staged** changes in the style of your recent commits (falling back to Conventional Commits), then confirm, edit, regenerate, or abort before committing. |
+| `git-assistant commit [-a] [--hint <text>] [-y \| --dry-run]` | Generate a commit message from **staged** changes (with `-a`, all changes to tracked files, like `git commit -a`; nothing is staged unless you confirm) in the style of your recent commits (falling back to Conventional Commits), then confirm, edit, regenerate, or abort before committing. |
 | `git-assistant branch [--type <type>] [--hint <text>] [-y \| --dry-run]` | Suggest branch names for **all uncommitted work** (staged, unstaged, and new files) and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
 | `git-assistant pr [--base <branch>] [--hint <text>]` | Write a pull request title and Markdown description from the commits on this branch that aren't on `<branch>` (default: origin's default branch, else `origin/main`, `origin/master`, `main`, `master`). Prints to stdout; changes nothing. Uncommitted work isn't included. |
 | `git-assistant auth [--no-validate]` | Choose a provider and model, enter an API key, and save it. |

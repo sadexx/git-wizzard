@@ -29,7 +29,7 @@ export function buildCommitPrompt(diff: GitDiff, context: CommitContext, hint: s
       : 'Recent commits: none (first commit).\n\n';
   return (
     `${authorNote(hint)}Branch: ${context.branch}\n\n${history}` +
-    `Staged changes (+${diff.additions}/-${diff.deletions}):\n${fileList}\n\nDiff:\n${budgetPatch(diff.patch)}`
+    `Changes to commit (+${diff.additions}/-${diff.deletions}):\n${fileList}\n\nDiff:\n${budgetPatch(diff.patch)}`
   );
 }
 

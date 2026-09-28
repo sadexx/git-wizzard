@@ -51,6 +51,33 @@ test('recentSubjects lists newest first, skips merges, and honors the limit', as
   assert.deepEqual(await repo.recentSubjects(1), { ok: true, value: ['second'] });
 });
 
+test('commit with all includes unstaged tracked changes but never untracked files', async () => {
+  const { dir, git } = await tempRepo();
+  // createCommit runs git without our -c identity flags, so give the repo its own.
+  git('config', 'user.name', 'Test');
+  git('config', 'user.email', 'test@example.com');
+  await writeFile(join(dir, 'first.txt'), 'first\n');
+  git('add', 'first.txt');
+  const repo = await open(dir);
+  const unborn = await repo.commitDiff(true);
+  assert.deepEqual(unborn.ok && unborn.value.files.map((file: { path: string }) => file.path), ['first.txt']);
+  git('commit', '-q', '-m', 'init');
+
+  await writeFile(join(dir, 'first.txt'), 'changed\n');
+  await writeFile(join(dir, 'new.txt'), 'untracked\n');
+  const staged = await repo.commitDiff(false);
+  assert.deepEqual(staged.ok && staged.value.files, []);
+  const all = await repo.commitDiff(true);
+  assert.deepEqual(all.ok && all.value.files.map((file: { path: string }) => file.path), ['first.txt']);
+
+  const committed = await repo.createCommit('update first', true);
+  assert.equal(committed.ok && committed.value.summary, 'update first');
+  const status = execFileSync('git', ['status', '--porcelain'], { cwd: dir, encoding: 'utf8' });
+  assert.equal(status, '?? new.txt\n');
+  const again = await repo.createCommit('nothing left', true);
+  assert.equal(!again.ok && again.error.kind === 'GitError' && again.error.reason, 'nothing_to_commit');
+});
+
 test('defaultBase prefers origin/HEAD, falls back to main, and is undefined before any commit', async () => {
   const { dir, git } = await tempRepo();
   const repo = await open(dir);
