@@ -1,5 +1,6 @@
-import { type ReactElement, useState } from 'react';
-import { Box, Text, useApp, useInput, type Key } from 'ink';
+import type { ReactElement } from 'react';
+import { Box, Text, useApp, useInput } from 'ink';
+import { SelectList } from '#ui/components/SelectList.js';
 
 export type MenuTarget = 'commit' | 'branch' | 'pr' | 'status' | 'diff';
 
@@ -11,8 +12,6 @@ const ITEMS: ReadonlyArray<{ key: MenuTarget; label: string; description: string
   { key: 'diff', label: 'Diff', description: 'unstaged or staged changes' },
 ];
 
-const LABEL_WIDTH = Math.max(...ITEMS.map((item: (typeof ITEMS)[number]) => item.label.length)) + 4;
-
 export function Menu({
   onSelect,
   initial = 0,
@@ -20,33 +19,22 @@ export function Menu({
   onSelect: (target: MenuTarget) => void;
   initial?: number;
 }): ReactElement {
-  const [index, setIndex] = useState(initial);
   const { exit } = useApp();
-
-  useInput((input: string, key: Key) => {
-    if (key.upArrow || input === 'k') setIndex((previous: number) => (previous - 1 + ITEMS.length) % ITEMS.length);
-    else if (key.downArrow || input === 'j') setIndex((previous: number) => (previous + 1) % ITEMS.length);
-    else if (key.return) {
-      const item = ITEMS[index];
-      if (item !== undefined) onSelect(item.key);
-    } else if (input === 'q' || key.escape) exit();
-    else {
-      const item = ITEMS[Number.parseInt(input, 10) - 1];
-      if (item !== undefined) onSelect(item.key);
-    }
+  useInput((input: string) => {
+    if (input === 'q') exit();
   });
 
   return (
     <Box flexDirection="column" marginTop={1}>
-      {ITEMS.map((item: (typeof ITEMS)[number], itemIndex: number) => {
-        const selected = itemIndex === index;
-        return (
-          <Text key={item.key}>
-            <Text bold={selected}>{`${selected ? '❯' : ' '} ${itemIndex + 1}. ${item.label}`.padEnd(LABEL_WIDTH + 5)}</Text>
-            <Text dimColor>{item.description}</Text>
-          </Text>
-        );
-      })}
+      <SelectList
+        items={ITEMS}
+        initial={initial}
+        onSelect={(index: number) => {
+          const item = ITEMS[index];
+          if (item !== undefined) onSelect(item.key);
+        }}
+        onCancel={exit}
+      />
       <Box marginTop={1}>
         <Text dimColor>↑/↓ move · enter select · 1–{ITEMS.length} jump · q quit</Text>
       </Box>

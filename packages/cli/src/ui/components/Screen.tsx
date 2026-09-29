@@ -49,3 +49,21 @@ export function ErrorView({ message }: { message: string }): ReactElement {
 export function Success({ children }: { children: ReactNode }): ReactElement {
   return <Text>✓ {children}</Text>;
 }
+
+/** Generated text awaiting a decision: first line bold, the rest as body, in a dim rounded frame. */
+export function Proposal({ text }: { text: string }): ReactElement {
+  const [first = '', ...rest] = text.split('\n');
+  const body = rest.join('\n').trim();
+  return (
+    <Box borderStyle="round" borderDimColor paddingX={1} flexDirection="column">
+      <Text bold>{first}</Text>
+      {body !== '' ? <Text>{`\n${body}`}</Text> : null}
+    </Box>
+  );
+}
+
+/** The options steering a generation (scope, type, base, hint), as one dim line. */
+export function Options({ items }: { items: ReadonlyArray<string | undefined> }): ReactElement | null {
+  const shown = items.filter((item: string | undefined): item is string => item !== undefined);
+  return shown.length > 0 ? <Text dimColor>{shown.join(' · ')}</Text> : null;
+}

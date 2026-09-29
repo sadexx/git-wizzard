@@ -120,7 +120,7 @@ async function ask(query: string): Promise<string | null> {
 }
 
 /** Open the user's git editor on `initial`; undefined when no editor could be run. */
-function editViaEditor(initial: string): string | undefined {
+export function editViaEditor(initial: string): string | undefined {
   const editor = resolveEditor();
   if (editor === undefined) return undefined;
 
