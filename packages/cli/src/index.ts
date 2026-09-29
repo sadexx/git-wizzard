@@ -13,7 +13,7 @@ import { VERSION } from '#version.js';
 function buildProgram(): Command {
   const program = new Command();
   program
-    .name('git-assistant')
+    .name('gitwizz')
     .description('AI-assisted git: commit messages, branch names, and PR descriptions from your changes')
     .version(VERSION)
     .showHelpAfterError()
@@ -23,12 +23,12 @@ function buildProgram(): Command {
 Run without arguments for the interactive menu.
 
 Examples:
-  git-assistant commit                  message for staged changes; confirm, edit, or regenerate
-  git-assistant commit -a --hint "why"  include all tracked changes, steer with your intent
-  git-assistant branch --type fix       suggest and create a branch for uncommitted work
-  git-assistant pr > pr.md              title and description for this branch's commits
-  git-assistant hook install            draft messages inside plain "git commit"
-  git-assistant auth status             which provider, model, and key are in use`,
+  gitwizz commit                  message for staged changes; confirm, edit, or regenerate
+  gitwizz commit -a --hint "why"  include all tracked changes, steer with your intent
+  gitwizz branch --type fix       suggest and create a branch for uncommitted work
+  gitwizz pr > pr.md              title and description for this branch's commits
+  gitwizz hook install            draft messages inside plain "git commit"
+  gitwizz auth status             which provider, model, and key are in use`,
     );
 
   registerAuthCommand(program);

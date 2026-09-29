@@ -17,7 +17,7 @@ import {
   type CompletionResponse,
   type ProviderError,
   type Result,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 import type { ProviderAdapter } from '#auth/provider-adapter.js';
 
 /** Supplies the provider adapter on demand, so credentials are only needed once something is sampled. */

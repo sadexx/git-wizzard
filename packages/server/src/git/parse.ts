@@ -1,4 +1,4 @@
-import type { GitDiffFile, GitFileChange, GitFileStatus, GitStatus } from '@git-assistant/shared';
+import type { GitDiffFile, GitFileChange, GitFileStatus, GitStatus } from '@git-wizzard/shared';
 
 /** Parse `git status --porcelain=v2 --branch` output into a GitStatus shape. */
 export function parseStatus(raw: string): GitStatus {

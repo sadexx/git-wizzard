@@ -13,7 +13,7 @@ import {
   type ProviderConfig,
   type ProviderError,
   type Result,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 import { extractHttpStatus, type ProviderAdapter } from '#auth/provider-adapter.js';
 
 type GeminiContent = { role: 'user' | 'model'; parts: Array<{ text: string }> };

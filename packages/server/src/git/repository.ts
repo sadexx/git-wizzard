@@ -16,7 +16,7 @@ import {
   commitResultSchema,
   type CreateBranchOutput,
   createBranchOutputSchema,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 import { parseStatus, parseNumstat } from '#git/parse.js';
 
 export type RepoError = GitError | ValidationError;

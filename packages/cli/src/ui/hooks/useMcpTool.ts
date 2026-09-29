@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { AppError, Result } from '@git-assistant/shared';
+import type { AppError, Result } from '@git-wizzard/shared';
 import { renderError } from '#errors.js';
 
 export type ToolState<T> =

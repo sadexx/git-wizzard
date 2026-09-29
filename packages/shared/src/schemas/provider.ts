@@ -12,7 +12,7 @@ export const providerConfigSchema = z
   .strict();
 export type ProviderConfig = z.infer<typeof providerConfigSchema>;
 
-/** On-disk shape at ~/.git-assistant/config.json. `version` gates future migrations. */
+/** On-disk shape at ~/.git-wizzard/config.json. `version` gates future migrations. */
 export const persistedConfigSchema = z
   .object({
     version: z.literal(1),

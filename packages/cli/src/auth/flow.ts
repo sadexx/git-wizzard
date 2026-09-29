@@ -10,7 +10,7 @@ import {
   type ProviderError,
   type ProviderName,
   type Result,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 import type { ProviderAdapter, ProviderConfig } from '#auth/provider-adapter.js';
 import { OpenAiAdapter } from '#auth/providers/openai.js';
 import { GeminiAdapter } from '#auth/providers/gemini.js';
@@ -202,10 +202,10 @@ export function resolveConfiguredAdapter(): Promise<Result<ProviderAdapter, Auth
 
 function readProcessEnv(): AuthEnv {
   return {
-    provider: processEnv['GIT_ASSISTANT_PROVIDER'],
+    provider: processEnv['GIT_WIZZARD_PROVIDER'],
     openaiKey: processEnv['OPENAI_API_KEY'],
     geminiKey: processEnv['GEMINI_API_KEY'] ?? processEnv['GOOGLE_API_KEY'],
-    model: processEnv['GIT_ASSISTANT_MODEL'],
+    model: processEnv['GIT_WIZZARD_MODEL'],
     isTty: stdin.isTTY === true && stdout.isTTY === true,
   };
 }

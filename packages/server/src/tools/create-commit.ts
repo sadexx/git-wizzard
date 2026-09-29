@@ -4,7 +4,7 @@ import {
   createCommitOutputSchema,
   type CommitResult,
   type CreateCommitInput,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 import { GitRepository } from '#git/repository.js';
 import { fromResult, toolErr } from '#tools/tool-result.js';
 

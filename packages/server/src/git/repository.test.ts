@@ -9,7 +9,7 @@ import { GitRepository } from '#git/repository.js';
 const identity = ['-c', 'user.name=Test', '-c', 'user.email=test@example.com'];
 
 async function tempRepo(): Promise<{ dir: string; git: (...args: string[]) => void }> {
-  const dir = await mkdtemp(join(tmpdir(), 'git-assistant-repo-'));
+  const dir = await mkdtemp(join(tmpdir(), 'git-wizzard-repo-'));
   let tick: number = 0;
   const git = (...args: string[]): void => {
     // Distinct, increasing dates so `git log` ordering is deterministic within one test second.

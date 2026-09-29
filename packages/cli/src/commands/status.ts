@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
-import type { GitFileChange, GitFileStatus, GitStatus } from '@git-assistant/shared';
-import type { GitAssistantClient } from '#mcp/client.js';
+import type { GitFileChange, GitFileStatus, GitStatus } from '@git-wizzard/shared';
+import type { GitWizzardClient } from '#mcp/client.js';
 import { printError, withClient } from '#commands/support.js';
 import { plain, plural, styleFor, type Style, type StyleFormat } from '#format.js';
 
@@ -9,7 +9,7 @@ export function registerStatusCommand(program: Command): void {
     .command('status')
     .description('Show the working-tree status')
     .action(async () => {
-      await withClient(async (client: GitAssistantClient) => {
+      await withClient(async (client: GitWizzardClient) => {
         const result = await client.getStatus();
         if (!result.ok) {
           printError(result.error);

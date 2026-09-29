@@ -7,10 +7,10 @@ import { ErrorView, Screen, Success } from '#ui/components/Screen.js';
 const STATE_TEXT = {
   installed: 'installed',
   absent: 'not installed',
-  foreign: 'a hook git-assistant did not write is in place (left alone)',
+  foreign: 'a hook git-wizzard did not write is in place (left alone)',
 } as const;
 
-/** `git-assistant hook install` / `uninstall`, with the current state shown up front. */
+/** `gitwizz hook install` / `uninstall`, with the current state shown up front. */
 export function Hook({ onBack }: { onBack: () => void }): ReactElement {
   const path = hookPath();
   const [result, setResult] = useState<{ ok: boolean; text: string } | undefined>(undefined);
@@ -18,7 +18,7 @@ export function Hook({ onBack }: { onBack: () => void }): ReactElement {
   if (path === undefined) {
     return (
       <Screen title="Git hook" hints={['esc back']}>
-        <ErrorView message={'error: Not a git repository\nhint: Run git-assistant from inside a git repository.'} />
+        <ErrorView message={'error: Not a git repository\nhint: Run gitwizz from inside a git repository.'} />
         <Box marginTop={1}>
           <SelectList items={[{ label: 'Back' }]} onSelect={onBack} onCancel={onBack} />
         </Box>
@@ -29,10 +29,10 @@ export function Hook({ onBack }: { onBack: () => void }): ReactElement {
   const state = hookState(path);
   const install = (): void => {
     // The script itself (its shebang finds node), same as the CLI, so a node upgrade doesn't break the hook.
-    const outcome = installHook(path, [process.argv[1] ?? 'git-assistant']);
+    const outcome = installHook(path, [process.argv[1] ?? 'gitwizz']);
     setResult(
       outcome === 'foreign'
-        ? { ok: false, text: 'A hook git-assistant did not write is in place; remove or rename it first.' }
+        ? { ok: false, text: 'A hook git-wizzard did not write is in place; remove or rename it first.' }
         : { ok: true, text: outcome === 'installed' ? 'Installed. Plain "git commit" now opens with an AI draft.' : 'Updated.' },
     );
   };
@@ -40,7 +40,7 @@ export function Hook({ onBack }: { onBack: () => void }): ReactElement {
     const outcome = uninstallHook(path);
     setResult(
       outcome === 'foreign'
-        ? { ok: false, text: 'That hook was not installed by git-assistant; leaving it in place.' }
+        ? { ok: false, text: 'That hook was not installed by git-wizzard; leaving it in place.' }
         : { ok: true, text: outcome === 'removed' ? 'Removed.' : 'Nothing to remove.' },
     );
   };

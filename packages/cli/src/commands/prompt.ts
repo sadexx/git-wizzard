@@ -124,7 +124,7 @@ export function editViaEditor(initial: string): string | undefined {
   const editor = resolveEditor();
   if (editor === undefined) return undefined;
 
-  const dir = mkdtempSync(join(tmpdir(), 'git-assistant-edit-'));
+  const dir = mkdtempSync(join(tmpdir(), 'git-wizzard-edit-'));
   const file = join(dir, 'EDIT_MSG');
 
   try {

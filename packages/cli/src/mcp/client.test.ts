@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { gitError, toWireError, TOOL_ERROR_META_KEY } from '@git-assistant/shared';
+import { gitError, toWireError, TOOL_ERROR_META_KEY } from '@git-wizzard/shared';
 import { toolCallError } from '#mcp/client.js';
 
 test('toolCallError decodes the typed error from _meta', () => {

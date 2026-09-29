@@ -9,7 +9,7 @@ import {
   type GitFileChange,
   type SuggestBranchNameInput,
   type SuggestBranchNameOutput,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 import { GitRepository } from '#git/repository.js';
 import { fromResult, samplingError, toolErr } from '#tools/tool-result.js';
 import {

@@ -1,4 +1,4 @@
-import type { BranchType, GenerateCommitMessageOutput, GitDiff, GitDiffFile } from '@git-assistant/shared';
+import type { BranchType, GenerateCommitMessageOutput, GitDiff, GitDiffFile } from '@git-wizzard/shared';
 
 export const COMMIT_SYSTEM_PROMPT: string =
   'You write git commit messages. If the recent commits show a consistent convention (prefix words, ' +

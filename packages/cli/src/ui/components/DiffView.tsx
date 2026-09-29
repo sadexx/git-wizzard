@@ -1,11 +1,11 @@
 import type { ReactElement } from 'react';
 import { Text } from 'ink';
-import type { GitDiff } from '@git-assistant/shared';
+import type { GitDiff } from '@git-wizzard/shared';
 import { formatDiff } from '#commands/diff.js';
 import { ScrollView } from '#ui/components/ScrollView.js';
 import { diffStyle } from '#ui/theme.js';
 
-/** Same content as `git-assistant diff`: summary, per-file counts, then the patch, scrollable. */
+/** Same content as `gitwizz diff`: summary, per-file counts, then the patch, scrollable. */
 export function DiffView({ diff }: { diff: GitDiff }): ReactElement {
   if (diff.files.length === 0) {
     return (

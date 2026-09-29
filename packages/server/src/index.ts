@@ -13,7 +13,7 @@ import { registerPrDescriptionTool } from '#tools/pr-description.js';
 
 export function createServer(): McpServer {
   const { version } = createRequire(import.meta.url)('../package.json') as { version: string };
-  const server = new McpServer({ name: 'git-assistant-server', version }, { capabilities: { tools: {} } });
+  const server = new McpServer({ name: 'git-wizzard-server', version }, { capabilities: { tools: {} } });
   registerStatusTool(server);
   registerDiffTool(server);
   registerBranchNameTool(server);

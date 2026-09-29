@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
-import { gitError, providerError, toWireError, TOOL_ERROR_META_KEY } from '@git-assistant/shared';
+import { gitError, providerError, toWireError, TOOL_ERROR_META_KEY } from '@git-wizzard/shared';
 import { samplingError, toolErr } from '#tools/tool-result.js';
 
 test('toolErr carries the typed error in _meta alongside readable text', () => {

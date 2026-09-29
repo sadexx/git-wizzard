@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { GitDiff } from '@git-assistant/shared';
+import type { GitDiff } from '@git-wizzard/shared';
 import {
   budgetPatch,
   buildBranchPrompt,

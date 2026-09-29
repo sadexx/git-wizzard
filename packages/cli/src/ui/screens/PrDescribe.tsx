@@ -1,6 +1,6 @@
 import { useCallback, useState, type ReactElement } from 'react';
 import { Box, useInput, type Key } from 'ink';
-import type { GitAssistantClient } from '#mcp/client.js';
+import type { GitWizzardClient } from '#mcp/client.js';
 import { plural } from '#format.js';
 import { useMcpTool } from '#ui/hooks/useMcpTool.js';
 import { Spinner } from '#ui/components/Spinner.js';
@@ -13,8 +13,8 @@ type Phase = { kind: 'view' } | { kind: 'hint' } | { kind: 'base' };
 
 const LIST_HINTS = ['↑/↓ select', 'enter choose', 'esc back'];
 
-/** Everything `git-assistant pr` does: --base, --hint, regenerate. Read-only; save with `git-assistant pr > pr.md`. */
-export function PrDescribe({ client, onBack }: { client: GitAssistantClient; onBack: () => void }): ReactElement {
+/** Everything `gitwizz pr` does: --base, --hint, regenerate. Read-only; save with `gitwizz pr > pr.md`. */
+export function PrDescribe({ client, onBack }: { client: GitWizzardClient; onBack: () => void }): ReactElement {
   const [base, setBase] = useState<string | undefined>(undefined);
   const [hint, setHint] = useState<string | undefined>(undefined);
   const [phase, setPhase] = useState<Phase>({ kind: 'view' });
@@ -98,7 +98,7 @@ export function PrDescribe({ client, onBack }: { client: GitAssistantClient; onB
           ? `Pull request · ${plural(state.data.commits, 'commit')} not on ${state.data.base}`
           : 'Pull request'
       }
-      hints={[...LIST_HINTS, ...(state.status === 'success' ? ['save it with: git-assistant pr > pr.md'] : [])]}
+      hints={[...LIST_HINTS, ...(state.status === 'success' ? ['save it with: gitwizz pr > pr.md'] : [])]}
     >
       {options}
       <Box marginY={1} flexDirection="column">

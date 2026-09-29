@@ -10,7 +10,7 @@ import {
   type AuthError,
   type PersistedConfig,
   type Result,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 
 /** Load and validate config. Returns ok(null) when the file does not exist. */
 export async function loadConfig(
@@ -73,7 +73,7 @@ export function configPath(baseDir: string = defaultBaseDir()): string {
 }
 
 function defaultBaseDir(): string {
-  return join(homedir(), '.git-assistant');
+  return join(homedir(), '.git-wizzard');
 }
 
 function isNotFound(cause: unknown): boolean {

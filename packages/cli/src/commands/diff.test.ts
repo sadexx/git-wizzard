@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { GitDiff } from '@git-assistant/shared';
+import type { GitDiff } from '@git-wizzard/shared';
 import { formatDiff } from '#commands/diff.js';
 import type { Style } from '#format.js';
 

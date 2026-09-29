@@ -13,7 +13,7 @@ import {
   type ProviderConfig,
   type CompletionRequest,
   type ChatMessage,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 import { extractHttpStatus, type ProviderAdapter } from '#auth/provider-adapter.js';
 
 export class OpenAiAdapter implements ProviderAdapter {

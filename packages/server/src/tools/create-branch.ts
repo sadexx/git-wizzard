@@ -4,7 +4,7 @@ import {
   createBranchOutputSchema,
   type CreateBranchInput,
   type CreateBranchOutput,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 import { GitRepository } from '#git/repository.js';
 import { fromResult, toolErr } from '#tools/tool-result.js';
 

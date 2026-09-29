@@ -7,7 +7,7 @@ import {
   TOOL_ERROR_META_KEY,
   type AppError,
   type Result,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 
 /** Bridge a domain Result to a tool result: structuredContent on success, isError text on failure. */
 export function fromResult<T extends Record<string, unknown>>(

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { GitStatus } from '@git-assistant/shared';
+import type { GitStatus } from '@git-wizzard/shared';
 import { formatStatus } from '#commands/status.js';
 import type { Style } from '#format.js';
 

@@ -8,7 +8,7 @@ import {
   providerError,
   type GenerateCommitMessageInput,
   type GenerateCommitMessageOutput,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 import { GitRepository } from '#git/repository.js';
 import { fromResult, samplingError, toolErr } from '#tools/tool-result.js';
 import { buildCommitPrompt, COMMIT_SYSTEM_PROMPT, parseCommitMessage } from '#tools/format.js';

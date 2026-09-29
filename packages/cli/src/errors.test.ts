@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { authError, gitError, providerError } from '@git-assistant/shared';
+import { authError, gitError, providerError } from '@git-wizzard/shared';
 import { renderError } from '#errors.js';
 
 test('renderError shows the message and an actionable hint', () => {
   assert.equal(
     renderError(gitError('nothing_to_commit', 'No staged changes to summarize')),
-    'error: No staged changes to summarize\nhint: Stage your changes with "git add <path>", or run "git-assistant commit -a" to include all tracked files.',
+    'error: No staged changes to summarize\nhint: Stage your changes with "git add <path>", or run "gitwizz commit -a" to include all tracked files.',
   );
 });
 
@@ -16,13 +16,13 @@ test('renderError indents multi-line cause detail under the message', () => {
 });
 
 test('renderError points auth failures at the auth command', () => {
-  assert.match(renderError(authError('missing_credentials', 'none')), /^hint: Run "git-assistant auth"/m);
-  assert.match(renderError(providerError('unauthorized', 'rejected')), /^hint: Run "git-assistant auth"/m);
+  assert.match(renderError(authError('missing_credentials', 'none')), /^hint: Run "gitwizz auth"/m);
+  assert.match(renderError(providerError('unauthorized', 'rejected')), /^hint: Run "gitwizz auth"/m);
 });
 
 test('renderError does not send "auth" without a terminal back to "auth"', () => {
   const rendered = renderError(authError('no_terminal', 'needs a terminal'));
-  assert.doesNotMatch(rendered, /git-assistant auth/);
+  assert.doesNotMatch(rendered, /gitwizz auth/);
   assert.match(rendered, /^hint: .*OPENAI_API_KEY/m);
 });
 

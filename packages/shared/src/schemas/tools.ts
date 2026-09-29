@@ -13,7 +13,7 @@ export const toolNameSchema = z.enum([
 export type ToolName = z.infer<typeof toolNameSchema>;
 
 /** `_meta` key under which a failed tool call carries its wire-form AppError (see `toWireError`). */
-export const TOOL_ERROR_META_KEY = 'git-assistant/error';
+export const TOOL_ERROR_META_KEY = 'git-wizzard/error';
 
 export const branchTypeSchema = z.enum(['feature', 'fix', 'chore', 'refactor', 'docs', 'test', 'hotfix']);
 export type BranchType = z.infer<typeof branchTypeSchema>;

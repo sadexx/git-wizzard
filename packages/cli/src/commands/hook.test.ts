@@ -7,12 +7,12 @@ import { join } from 'node:path';
 import { hookScript, hookState, installHook, uninstallHook } from '#commands/hook.js';
 
 function tempHookPath(): string {
-  return join(mkdtempSync(join(tmpdir(), 'git-assistant-hook-')), 'hooks', 'prepare-commit-msg');
+  return join(mkdtempSync(join(tmpdir(), 'git-wizzard-hook-')), 'hooks', 'prepare-commit-msg');
 }
 
-/** Run the hook with a fake "git-assistant" that prints `draft` (or fails when undefined). */
+/** Run the hook with a fake "gitwizz" that prints `draft` (or fails when undefined). */
 function runHook(source: string, draft: string | undefined): string {
-  const dir = mkdtempSync(join(tmpdir(), 'git-assistant-hookrun-'));
+  const dir = mkdtempSync(join(tmpdir(), 'git-wizzard-hookrun-'));
   const fake = join(dir, 'fake-cli');
   writeFileSync(fake, draft === undefined ? '#!/bin/sh\nexit 1\n' : `#!/bin/sh\nprintf '%s' '${draft}'\n`, { mode: 0o755 });
   const hook = join(dir, 'hook');
@@ -40,20 +40,20 @@ test('hookScript quotes paths with spaces and quotes', () => {
 
 test('installHook creates an executable hook, updates its own, and never touches a foreign one', () => {
   const path = tempHookPath();
-  assert.equal(installHook(path, ['git-assistant']), 'installed');
+  assert.equal(installHook(path, ['gitwizz']), 'installed');
   assert.equal(statSync(path).mode & 0o111, 0o111);
-  assert.equal(installHook(path, ['git-assistant']), 'updated');
+  assert.equal(installHook(path, ['gitwizz']), 'updated');
   assert.equal(uninstallHook(path), 'removed');
   assert.equal(uninstallHook(path), 'absent');
 
   assert.equal(hookState(path), 'absent');
-  installHook(path, ['git-assistant']);
+  installHook(path, ['gitwizz']);
   assert.equal(hookState(path), 'installed');
   uninstallHook(path);
 
   writeFileSync(path, '#!/bin/sh\necho mine\n');
   assert.equal(hookState(path), 'foreign');
-  assert.equal(installHook(path, ['git-assistant']), 'foreign');
+  assert.equal(installHook(path, ['gitwizz']), 'foreign');
   assert.equal(uninstallHook(path), 'foreign');
   assert.equal(readFileSync(path, 'utf8'), '#!/bin/sh\necho mine\n');
 });

@@ -1,5 +1,5 @@
 import { Option, type Command } from 'commander';
-import type { GitAssistantClient } from '#mcp/client.js';
+import type { GitWizzardClient } from '#mcp/client.js';
 import { hintOption, printError, printRecoverableError, withClient } from '#commands/support.js';
 import { withProgress } from '#format.js';
 import {
@@ -23,8 +23,8 @@ export function registerCommitCommand(program: Command): void {
       const mode = requireConfirmMode(options);
       if (mode === undefined) return;
 
-      await withClient(async (client: GitAssistantClient) => {
-        const generate = (label: string): ReturnType<GitAssistantClient['generateCommitMessage']> =>
+      await withClient(async (client: GitWizzardClient) => {
+        const generate = (label: string): ReturnType<GitWizzardClient['generateCommitMessage']> =>
           withProgress(label, () => client.generateCommitMessage({ hint: options.hint, all: options.all }));
         const generated = await generate('Generating commit message');
         if (!generated.ok) {

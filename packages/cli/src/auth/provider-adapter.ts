@@ -6,7 +6,7 @@ import type {
   ProviderName,
   Result,
   ProviderConfig,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 
 /**
  * Provider-agnostic contract. `validateKey` performs a cheap autheticated call

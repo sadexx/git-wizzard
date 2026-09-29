@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState, type ReactElement } from 'react';
 import { Box, render } from 'ink';
-import type { AuthError, GitStatus, Result } from '@git-assistant/shared';
+import type { AuthError, GitStatus, Result } from '@git-wizzard/shared';
 import { activeAuth, defaultAuthDeps, resolveConfiguredAdapter, type ActiveAuth } from '#auth/flow.js';
 import { renderError } from '#errors.js';
-import { connectClient, type ClientError, type GitAssistantClient } from '#mcp/client.js';
+import { connectClient, type ClientError, type GitWizzardClient } from '#mcp/client.js';
 import { Header } from '#ui/components/Header.js';
 import { Menu, menuIndex, type MenuTarget } from '#ui/screens/Menu.js';
 import { Status } from '#ui/screens/Status.js';
@@ -14,7 +14,7 @@ import { PrDescribe } from '#ui/screens/PrDescribe.js';
 import { Hook } from '#ui/screens/Hook.js';
 import { Auth } from '#ui/screens/Auth.js';
 
-export function App({ client }: { client: GitAssistantClient }): ReactElement {
+export function App({ client }: { client: GitWizzardClient }): ReactElement {
   const [screen, setScreen] = useState<MenuTarget | 'menu'>('menu');
   const [lastTarget, setLastTarget] = useState<MenuTarget>('commit');
   const [status, setStatus] = useState<GitStatus | undefined>(undefined);
@@ -50,7 +50,7 @@ export function App({ client }: { client: GitAssistantClient }): ReactElement {
 
 function body(
   screen: MenuTarget | 'menu',
-  client: GitAssistantClient,
+  client: GitWizzardClient,
   back: () => void,
   open: (target: MenuTarget) => void,
   menuPosition: number,

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { McpError, type CreateMessageRequest } from '@modelcontextprotocol/sdk/types.js';
-import { authError, err, ok, providerError } from '@git-assistant/shared';
+import { authError, err, ok, providerError } from '@git-wizzard/shared';
 import type { ProviderAdapter } from '#auth/provider-adapter.js';
 import {
   createSamplingHandler,

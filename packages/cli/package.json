@@ -1,5 +1,5 @@
 {
-  "name": "@git-assistant/cli",
+  "name": "@git-wizzard/cli",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
   },
   "main": "./dist/index.js",
   "bin": {
-    "git-assistant": "./dist/index.js"
+    "gitwizz": "./dist/index.js"
   },
   "imports": {
     "#*": "./dist/*"
@@ -19,8 +19,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@git-assistant/server": "*",
-    "@git-assistant/shared": "*",
+    "@git-wizzard/server": "*",
+    "@git-wizzard/shared": "*",
     "@google/genai": "^2.10.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "commander": "^15.0.0",

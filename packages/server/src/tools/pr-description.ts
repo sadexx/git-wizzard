@@ -8,7 +8,7 @@ import {
   providerError,
   type GeneratePrDescriptionInput,
   type GeneratePrDescriptionOutput,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 import { GitRepository } from '#git/repository.js';
 import { fromResult, samplingError, toolErr } from '#tools/tool-result.js';
 import { buildPrPrompt, parsePrDescription, PR_SYSTEM_PROMPT } from '#tools/format.js';

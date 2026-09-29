@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactElement } from 'react';
 import { Box, Text, useInput, type Key } from 'ink';
-import type { AppError, AuthError, ProviderName, Result } from '@git-assistant/shared';
+import type { AppError, AuthError, ProviderName, Result } from '@git-wizzard/shared';
 import { activeAuth, createAdapter, DEFAULT_MODELS, defaultAuthDeps, type ActiveAuth } from '#auth/flow.js';
 import { configPath, deleteConfig, saveConfig } from '#auth/config.js';
 import type { ProviderConfig } from '#auth/provider-adapter.js';
@@ -25,7 +25,7 @@ const PROVIDERS: ReadonlyArray<{ name: ProviderName; label: string }> = [
   { name: 'gemini', label: 'Google Gemini' },
 ];
 
-/** `git-assistant auth` (setup, with or without validation), `auth status`, and `auth logout`. */
+/** `gitwizz auth` (setup, with or without validation), `auth status`, and `auth logout`. */
 export function Auth({ onBack }: { onBack: () => void }): ReactElement {
   const [auth, setAuth] = useState<Result<ActiveAuth, AuthError> | undefined>(undefined);
   const [phase, setPhase] = useState<Phase>({ kind: 'overview' });

@@ -1,7 +1,7 @@
 import { homedir } from 'node:os';
 import type { ReactElement } from 'react';
 import { Box, Text } from 'ink';
-import type { GitStatus } from '@git-assistant/shared';
+import type { GitStatus } from '@git-wizzard/shared';
 import { plural } from '#format.js';
 import { VERSION } from '#version.js';
 
@@ -10,7 +10,7 @@ export function Header({ status, model }: { status: GitStatus | undefined; model
   return (
     <Box borderStyle="round" borderDimColor paddingX={1} flexDirection="column">
       <Text>
-        <Text bold>✻ git-assistant</Text>
+        <Text bold>✻ git-wizzard</Text>
         <Text dimColor>
           {' '}
           v{VERSION}

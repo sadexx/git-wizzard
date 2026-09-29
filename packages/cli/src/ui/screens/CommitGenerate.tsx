@@ -1,9 +1,9 @@
 import { useCallback, useState, type ReactElement } from 'react';
 import { Box, Text, useInput, type Key } from 'ink';
-import type { CommitResult, Result } from '@git-assistant/shared';
+import type { CommitResult, Result } from '@git-wizzard/shared';
 import { renderError } from '#errors.js';
 import { editViaEditor } from '#commands/prompt.js';
-import type { ClientError, GitAssistantClient } from '#mcp/client.js';
+import type { ClientError, GitWizzardClient } from '#mcp/client.js';
 import { useMcpTool } from '#ui/hooks/useMcpTool.js';
 import { Spinner } from '#ui/components/Spinner.js';
 import { SelectList } from '#ui/components/SelectList.js';
@@ -20,8 +20,8 @@ type Phase =
 
 const LIST_HINTS = ['↑/↓ select', 'enter choose', 'esc back'];
 
-/** Everything `git-assistant commit` does: staged or all tracked (-a), --hint, edit, regenerate. */
-export function CommitGenerate({ client, onBack }: { client: GitAssistantClient; onBack: () => void }): ReactElement {
+/** Everything `gitwizz commit` does: staged or all tracked (-a), --hint, edit, regenerate. */
+export function CommitGenerate({ client, onBack }: { client: GitWizzardClient; onBack: () => void }): ReactElement {
   const [all, setAll] = useState(false);
   const [hint, setHint] = useState<string | undefined>(undefined);
   const [edited, setEdited] = useState<string | undefined>(undefined);

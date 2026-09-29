@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { mkdtemp, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { PersistedConfig } from '@git-assistant/shared';
+import type { PersistedConfig } from '@git-wizzard/shared';
 import { configPath, deleteConfig, loadConfig, saveConfig } from '#auth/config.js';
 
 async function tempDir(): Promise<string> {
-  return mkdtemp(join(tmpdir(), 'git-assistant'));
+  return mkdtemp(join(tmpdir(), 'git-wizzard'));
 }
 
 test('loadConfig returns null when the file is absent', async () => {

@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
-import type { GitDiff, GitDiffFile } from '@git-assistant/shared';
-import type { GitAssistantClient } from '#mcp/client.js';
+import type { GitDiff, GitDiffFile } from '@git-wizzard/shared';
+import type { GitWizzardClient } from '#mcp/client.js';
 import { printError, withClient } from '#commands/support.js';
 import { plain, plural, styleFor, stylePatch, type Style } from '#format.js';
 
@@ -10,7 +10,7 @@ export function registerDiffCommand(program: Command): void {
     .description('Show the staged or unstaged diff')
     .option('--staged', 'Show staged changes instead of unstaged')
     .action(async (options: { staged?: boolean }) => {
-      await withClient(async (client: GitAssistantClient) => {
+      await withClient(async (client: GitWizzardClient) => {
         const result = await client.getDiff({ staged: options.staged === true });
         if (!result.ok) {
           printError(result.error);

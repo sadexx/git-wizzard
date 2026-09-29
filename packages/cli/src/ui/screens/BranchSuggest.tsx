@@ -1,8 +1,8 @@
 import { useCallback, useState, type ReactElement } from 'react';
 import { Box, useInput, type Key } from 'ink';
-import { branchTypeSchema, type BranchType, type CreateBranchOutput, type Result } from '@git-assistant/shared';
+import { branchTypeSchema, type BranchType, type CreateBranchOutput, type Result } from '@git-wizzard/shared';
 import { renderError } from '#errors.js';
-import type { ClientError, GitAssistantClient } from '#mcp/client.js';
+import type { ClientError, GitWizzardClient } from '#mcp/client.js';
 import { useMcpTool } from '#ui/hooks/useMcpTool.js';
 import { Spinner } from '#ui/components/Spinner.js';
 import { SelectList } from '#ui/components/SelectList.js';
@@ -22,8 +22,8 @@ type Phase =
 const LIST_HINTS = ['↑/↓ select', 'enter choose', 'esc back'];
 const TYPES: ReadonlyArray<BranchType | undefined> = [undefined, ...branchTypeSchema.options];
 
-/** Everything `git-assistant branch` does: --type, --hint, pick or edit a name, regenerate. */
-export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; onBack: () => void }): ReactElement {
+/** Everything `gitwizz branch` does: --type, --hint, pick or edit a name, regenerate. */
+export function BranchSuggest({ client, onBack }: { client: GitWizzardClient; onBack: () => void }): ReactElement {
   const [type, setType] = useState<BranchType | undefined>(undefined);
   const [hint, setHint] = useState<string | undefined>(undefined);
   const [phase, setPhase] = useState<Phase>({ kind: 'choosing' });

@@ -3,7 +3,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync }
 import { join, resolve } from 'node:path';
 import type { Command } from 'commander';
 
-const MARKER = '# Installed by git-assistant';
+const MARKER = '# Installed by git-wizzard';
 const HOOK = 'prepare-commit-msg';
 
 export function registerHookCommand(program: Command): void {
@@ -18,9 +18,9 @@ export function registerHookCommand(program: Command): void {
       const path = hookPathOrFail();
       if (path === undefined) return;
       // The script itself (its shebang finds node), so a node upgrade doesn't break the hook.
-      const result = installHook(path, [process.argv[1] ?? 'git-assistant']);
+      const result = installHook(path, [process.argv[1] ?? 'gitwizz']);
       if (result === 'foreign') {
-        return fail(`${path} already exists and was not installed by git-assistant`, 'Remove or rename it first.');
+        return fail(`${path} already exists and was not installed by git-wizzard`, 'Remove or rename it first.');
       }
       process.stdout.write(
         `${result === 'installed' ? 'Installed' : 'Updated'} ${path}\n` +
@@ -30,13 +30,13 @@ export function registerHookCommand(program: Command): void {
 
   hook
     .command('uninstall')
-    .description('Remove the hook installed by "git-assistant hook install"')
+    .description('Remove the hook installed by "gitwizz hook install"')
     .action(() => {
       const path = hookPathOrFail();
       if (path === undefined) return;
       const result = uninstallHook(path);
-      if (result === 'foreign') return fail(`${path} was not installed by git-assistant; leaving it in place`);
-      process.stdout.write(result === 'removed' ? `Removed ${path}\n` : 'No git-assistant hook installed.\n');
+      if (result === 'foreign') return fail(`${path} was not installed by git-wizzard; leaving it in place`);
+      process.stdout.write(result === 'removed' ? `Removed ${path}\n` : 'No git-wizzard hook installed.\n');
     });
 }
 
@@ -48,12 +48,12 @@ export function hookScript(command: readonly string[]): string {
   const invocation = command.map(shellQuote).join(' ');
   return [
     '#!/bin/sh',
-    `${MARKER}; remove with "git-assistant hook uninstall".`,
+    `${MARKER}; remove with "gitwizz hook uninstall".`,
     '# Pre-fills the message of a plain `git commit` with an AI draft. Never blocks the commit.',
     '[ -z "$2" ] || exit 0',
     `draft=$(${invocation} commit --dry-run) || exit 0`,
     '[ -n "$draft" ] || exit 0',
-    `{ printf '%s\\n' "$draft"; cat "$1"; } > "$1.git-assistant" && mv "$1.git-assistant" "$1"`,
+    `{ printf '%s\\n' "$draft"; cat "$1"; } > "$1.git-wizzard" && mv "$1.git-wizzard" "$1"`,
     'exit 0',
     '',
   ].join('\n');
@@ -96,7 +96,7 @@ export function hookPath(): string | undefined {
 }
 
 function hookPathOrFail(): string | undefined {
-  return hookPath() ?? fail('Not a git repository', 'Run git-assistant from inside a git repository.');
+  return hookPath() ?? fail('Not a git repository', 'Run gitwizz from inside a git repository.');
 }
 
 function fail(message: string, hint?: string): undefined {

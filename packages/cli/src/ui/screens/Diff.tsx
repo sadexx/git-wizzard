@@ -1,12 +1,12 @@
 import { useCallback, useState, type ReactElement } from 'react';
 import { useInput, type Key } from 'ink';
-import type { GitAssistantClient } from '#mcp/client.js';
+import type { GitWizzardClient } from '#mcp/client.js';
 import { useMcpTool } from '#ui/hooks/useMcpTool.js';
 import { Spinner } from '#ui/components/Spinner.js';
 import { DiffView } from '#ui/components/DiffView.js';
 import { ErrorView, Screen } from '#ui/components/Screen.js';
 
-export function Diff({ client, onBack }: { client: GitAssistantClient; onBack: () => void }): ReactElement {
+export function Diff({ client, onBack }: { client: GitWizzardClient; onBack: () => void }): ReactElement {
   const [staged, setStaged] = useState(false);
   const run = useCallback(() => client.getDiff({ staged }), [client, staged]);
   const { state, reload } = useMcpTool(run);

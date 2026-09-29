@@ -1,5 +1,5 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { getDiffInputSchema, getDiffOutputSchema, type GetDiffInput, type GitDiff } from '@git-assistant/shared';
+import { getDiffInputSchema, getDiffOutputSchema, type GetDiffInput, type GitDiff } from '@git-wizzard/shared';
 import { GitRepository } from '#git/repository.js';
 import { fromResult, toolErr } from '#tools/tool-result.js';
 

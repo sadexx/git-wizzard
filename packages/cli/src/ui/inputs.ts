@@ -1,4 +1,4 @@
-import { generationHintSchema } from '@git-assistant/shared';
+import { generationHintSchema } from '@git-wizzard/shared';
 
 /** Empty clears the hint; otherwise the same 1–500 character rule as `--hint`. */
 export function validateHint(value: string): string | undefined {

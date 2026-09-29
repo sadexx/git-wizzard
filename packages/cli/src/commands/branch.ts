@@ -1,6 +1,6 @@
 import { type Command, Option } from 'commander';
-import { branchTypeSchema, type BranchType } from '@git-assistant/shared';
-import type { GitAssistantClient } from '#mcp/client.js';
+import { branchTypeSchema, type BranchType } from '@git-wizzard/shared';
+import type { GitWizzardClient } from '#mcp/client.js';
 import { hintOption, printError, printRecoverableError, withClient } from '#commands/support.js';
 import { withProgress } from '#format.js';
 import {
@@ -25,8 +25,8 @@ export function registerBranchCommand(program: Command): void {
       if (mode === undefined) return;
 
       const request = { type: parseBranchType(options.type), hint: options.hint };
-      await withClient(async (client: GitAssistantClient) => {
-        const suggest = (label: string): ReturnType<GitAssistantClient['suggestBranchName']> =>
+      await withClient(async (client: GitWizzardClient) => {
+        const suggest = (label: string): ReturnType<GitWizzardClient['suggestBranchName']> =>
           withProgress(label, () => client.suggestBranchName(request));
         const suggestions = await suggest('Suggesting branch names');
         if (!suggestions.ok) {

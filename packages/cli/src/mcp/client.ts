@@ -26,7 +26,7 @@ import {
   type GitStatus,
   type ProviderError,
   type Result,
-} from '@git-assistant/shared';
+} from '@git-wizzard/shared';
 import { createSamplingHandler, type AdapterResolver } from '#mcp/sampling.js';
 import { VERSION } from '#version.js';
 
@@ -51,7 +51,7 @@ export interface PrDescriptionOptions extends GenerationOptions {
   readonly base?: string | undefined;
 }
 
-export interface GitAssistantClient {
+export interface GitWizzardClient {
   getStatus(repoPath?: string): Promise<Result<GitStatus, ClientError>>;
   getDiff(options?: { staged?: boolean; repoPath?: string }): Promise<Result<GitDiff, ClientError>>;
   suggestBranchName(options?: SuggestBranchOptions): Promise<Result<string[], ClientError>>;
@@ -67,7 +67,7 @@ export interface GitAssistantClient {
 }
 
 /**
- * Spawn the git-assistant server as a subprocess, register the sampling handler
+ * Spawn the git-wizzard server as a subprocess, register the sampling handler
  * (which resolves the provider adapter only when a tool actually samples), and connect.
  * `cwd` is the target repo - the server resolves its own dependencies from its install
  * location, not from `cwd`.
@@ -75,12 +75,12 @@ export interface GitAssistantClient {
 export async function connectClient(
   resolveAdapter: AdapterResolver,
   options: { cwd?: string } = {},
-): Promise<Result<GitAssistantClient, ProviderError>> {
+): Promise<Result<GitWizzardClient, ProviderError>> {
   let serverEntry: string;
   try {
     serverEntry = resolveServerEntry();
   } catch (cause) {
-    return err(providerError('request_failed', 'Could not resolve the @git-assistant/server entry point', cause));
+    return err(providerError('request_failed', 'Could not resolve the @git-wizzard/server entry point', cause));
   }
 
   const transport = new StdioClientTransport({
@@ -90,19 +90,19 @@ export async function connectClient(
     env: cleanEnv(process.env),
     stderr: 'inherit',
   });
-  const client = new Client({ name: 'git-assistant-cli', version: VERSION }, { capabilities: { sampling: {} } });
+  const client = new Client({ name: 'git-wizzard-cli', version: VERSION }, { capabilities: { sampling: {} } });
   client.setRequestHandler(CreateMessageRequestSchema, createSamplingHandler(resolveAdapter));
 
   try {
     await client.connect(transport);
   } catch (cause) {
-    return err(providerError('request_failed', 'Failed to connect to the git-assistant server', cause));
+    return err(providerError('request_failed', 'Failed to connect to the git-wizzard server', cause));
   }
 
-  return ok(new StdioGitAssistantClient(client));
+  return ok(new StdioGitWizzardClient(client));
 }
 
-class StdioGitAssistantClient implements GitAssistantClient {
+class StdioGitWizzardClient implements GitWizzardClient {
   private readonly client: Client;
 
   constructor(client: Client) {
@@ -227,5 +227,5 @@ function cleanEnv(source: NodeJS.ProcessEnv): Record<string, string> {
 }
 
 function resolveServerEntry(): string {
-  return createRequire(import.meta.url).resolve('@git-assistant/server');
+  return createRequire(import.meta.url).resolve('@git-wizzard/server');
 }
