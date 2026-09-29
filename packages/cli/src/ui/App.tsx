@@ -85,7 +85,8 @@ export async function startInteractiveUi(): Promise<void> {
   }
 
   const client = connected.value;
-  const app = render(<App client={client} />);
+  // Full screen like vim/htop: the shell's content comes back on quit.
+  const app = render(<App client={client} />, { alternateScreen: true });
   try {
     await app.waitUntilExit();
   } finally {

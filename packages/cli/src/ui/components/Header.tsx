@@ -5,21 +5,33 @@ import type { GitStatus } from '@git-wizzard/shared';
 import { plural } from '#format.js';
 import { VERSION } from '#version.js';
 
-/** Rounded banner: name, version, and model in use, then where you are (path · branch · upstream · changes). */
+const WIZARD = String.raw`
+   /\   *
+  /__\ \|/
+ ( oo ) |
+ /|\/|\_|
+/_|__|_\|`.slice(1);
+
+/** Rounded banner: the wizard, then name, version, and model in use, and where you are (path · branch · upstream · changes). */
 export function Header({ status, model }: { status: GitStatus | undefined; model: string | undefined }): ReactElement {
   return (
-    <Box borderStyle="round" borderDimColor paddingX={1} flexDirection="column">
-      <Text>
-        <Text bold>✻ git-wizzard</Text>
-        <Text dimColor>
-          {' '}
-          v{VERSION}
-          {model !== undefined ? ` · ${model}` : ''}
+    <Box borderStyle="round" borderDimColor paddingX={1} alignItems="center">
+      <Box flexShrink={0} marginRight={2}>
+        <Text>{WIZARD}</Text>
+      </Box>
+      <Box flexDirection="column" flexGrow={1}>
+        <Text>
+          <Text bold>✻ git-wizzard</Text>
+          <Text dimColor>
+            {' '}
+            v{VERSION}
+            {model !== undefined ? ` · ${model}` : ''}
+          </Text>
         </Text>
-      </Text>
-      <Text dimColor wrap="truncate-middle">
-        {[tildePath(process.cwd()), ...(status !== undefined ? repoFacts(status) : [])].join(' · ')}
-      </Text>
+        <Text dimColor wrap="truncate-middle">
+          {[tildePath(process.cwd()), ...(status !== undefined ? repoFacts(status) : [])].join(' · ')}
+        </Text>
+      </Box>
     </Box>
   );
 }

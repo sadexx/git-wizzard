@@ -1,5 +1,5 @@
 import { useCallback, useState, type ReactElement } from 'react';
-import { Box, Text, useInput, type Key } from 'ink';
+import { Box, Text, useApp, useInput, type Key } from 'ink';
 import type { CommitResult, Result } from '@git-wizzard/shared';
 import { renderError } from '#errors.js';
 import { editViaEditor } from '#commands/prompt.js';
@@ -29,6 +29,7 @@ export function CommitGenerate({ client, onBack }: { client: GitWizzardClient; o
   const [phase, setPhase] = useState<Phase>({ kind: 'review' });
   const run = useCallback(() => client.generateCommitMessage({ all, hint }), [client, all, hint]);
   const { state, reload } = useMcpTool(run);
+  const { suspendTerminal } = useApp();
 
   // Any fresh generation replaces hand edits. Changing `all` or `hint` regenerates via `run`.
   const regenerate = (): void => {
@@ -50,9 +51,12 @@ export function CommitGenerate({ client, onBack }: { client: GitWizzardClient; o
     }
   };
   const edit = (current: string): void => {
-    const result = editViaEditor(current);
-    if (result === undefined) setNotice('Could not open an editor; set GIT_EDITOR or core.editor.');
-    else if (result !== '') setEdited(result);
+    // Hand the terminal to the editor; Ink restores its full screen and redraws afterwards.
+    void suspendTerminal(() => {
+      const result = editViaEditor(current);
+      if (result === undefined) setNotice('Could not open an editor; set GIT_EDITOR or core.editor.');
+      else if (result !== '') setEdited(result);
+    });
   };
   const commit = (message: string): void => {
     setPhase({ kind: 'committing' });
