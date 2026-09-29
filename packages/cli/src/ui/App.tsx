@@ -1,20 +1,54 @@
-import { useCallback, useState, type ReactElement } from 'react';
-import { render } from 'ink';
+import { useCallback, useEffect, useState, type ReactElement } from 'react';
+import { Box, render } from 'ink';
+import type { GitStatus, Result } from '@git-assistant/shared';
 import { resolveConfiguredAdapter } from '#auth/flow.js';
 import { renderError } from '#errors.js';
-import { connectClient, type GitAssistantClient } from '#mcp/client.js';
-import { Menu } from '#ui/screens/Menu.js';
+import { connectClient, type ClientError, type GitAssistantClient } from '#mcp/client.js';
+import { Header } from '#ui/components/Header.js';
+import { Menu, menuIndex, type MenuTarget } from '#ui/screens/Menu.js';
+import { Status } from '#ui/screens/Status.js';
 import { Diff } from '#ui/screens/Diff.js';
 import { BranchSuggest } from '#ui/screens/BranchSuggest.js';
 import { CommitGenerate } from '#ui/screens/CommitGenerate.js';
 import { PrDescribe } from '#ui/screens/PrDescribe.js';
 
-type Screen = 'menu' | 'diff' | 'branch' | 'commit' | 'pr';
-
 export function App({ client }: { client: GitAssistantClient }): ReactElement {
-  const [screen, setScreen] = useState<Screen>('menu');
+  const [screen, setScreen] = useState<MenuTarget | 'menu'>('menu');
+  const [lastTarget, setLastTarget] = useState<MenuTarget>('commit');
+  const [status, setStatus] = useState<GitStatus | undefined>(undefined);
   const back = useCallback(() => setScreen('menu'), []);
+  const open = useCallback((target: MenuTarget) => {
+    setLastTarget(target);
+    setScreen(target);
+  }, []);
+
+  // Refresh the header whenever the menu shows: a commit or a new branch changes what it says.
+  useEffect(() => {
+    if (screen !== 'menu') return;
+    client
+      .getStatus()
+      .then((result: Result<GitStatus, ClientError>) => setStatus(result.ok ? result.value : undefined))
+      .catch(() => setStatus(undefined));
+  }, [client, screen]);
+
+  return (
+    <Box flexDirection="column">
+      <Header status={status} />
+      {body(screen, client, back, open, menuIndex(lastTarget))}
+    </Box>
+  );
+}
+
+function body(
+  screen: MenuTarget | 'menu',
+  client: GitAssistantClient,
+  back: () => void,
+  open: (target: MenuTarget) => void,
+  menuPosition: number,
+): ReactElement {
   switch (screen) {
+    case 'status':
+      return <Status client={client} onBack={back} />;
     case 'diff':
       return <Diff client={client} onBack={back} />;
     case 'branch':
@@ -24,7 +58,7 @@ export function App({ client }: { client: GitAssistantClient }): ReactElement {
     case 'pr':
       return <PrDescribe client={client} onBack={back} />;
     case 'menu':
-      return <Menu onSelect={setScreen} />;
+      return <Menu onSelect={open} initial={menuPosition} />;
   }
 }
 

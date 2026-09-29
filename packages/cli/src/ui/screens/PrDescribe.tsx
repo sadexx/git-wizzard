@@ -1,9 +1,10 @@
 import { useCallback, type ReactElement } from 'react';
-import { Box, Text, useInput, type Key } from 'ink';
+import { Text, useInput, type Key } from 'ink';
 import type { GitAssistantClient } from '#mcp/client.js';
 import { plural } from '#format.js';
 import { useMcpTool } from '#ui/hooks/useMcpTool.js';
 import { Spinner } from '#ui/components/Spinner.js';
+import { ErrorView, Screen } from '#ui/components/Screen.js';
 
 /** Read-only: shows the generated PR text. `git-assistant pr --base <branch>` covers a non-default base. */
 export function PrDescribe({ client, onBack }: { client: GitAssistantClient; onBack: () => void }): ReactElement {
@@ -15,25 +16,23 @@ export function PrDescribe({ client, onBack }: { client: GitAssistantClient; onB
     else if (input === 'r' && state.status !== 'loading') reload();
   });
 
-  if (state.status === 'loading') return <Spinner label="Writing pull request description..." />;
-  if (state.status === 'error') {
+  if (state.status !== 'success') {
     return (
-      <Box flexDirection="column">
-        <Text color="red">{state.message}</Text>
-        <Text dimColor>r: retry · b/Esc: back</Text>
-      </Box>
+      <Screen title="Pull request" hints={state.status === 'error' ? ['r retry', 'esc back'] : ['esc back']}>
+        {state.status === 'loading' ? <Spinner label="Writing pull request description" /> : null}
+        {state.status === 'error' ? <ErrorView message={state.message} /> : null}
+      </Screen>
     );
   }
 
   const { title, body, base, commits } = state.data;
   return (
-    <Box flexDirection="column">
-      <Text dimColor>
-        {plural(commits, 'commit')} not on {base}
-      </Text>
+    <Screen
+      title={`Pull request · ${plural(commits, 'commit')} not on ${base}`}
+      hints={['r regenerate', 'esc back', 'save it with: git-assistant pr > pr.md']}
+    >
       <Text bold>{title}</Text>
       {body !== '' ? <Text>{`\n${body}`}</Text> : null}
-      <Text dimColor>{'\n'}r: regenerate · b/Esc: back · save it with: git-assistant pr &gt; pr.md</Text>
-    </Box>
+    </Screen>
   );
 }

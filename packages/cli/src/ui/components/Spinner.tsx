@@ -1,19 +1,22 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { Text } from 'ink';
 
-const FRAMES: string[] = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+const FRAMES: readonly string[] = ['·', '✢', '✳', '✶', '✻', '✽', '✻', '✶', '✳', '✢'];
 
+/** Monochrome activity indicator with elapsed seconds (the AI calls can take a while). */
 export function Spinner({ label }: { label: string }): ReactElement {
-  const [frame, setFrame] = useState(0);
+  const [tick, setTick] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setFrame((frame: number) => (frame + 1) % FRAMES.length), 80);
+    const id = setInterval(() => setTick((previous: number) => previous + 1), 120);
     return () => {
       clearInterval(id);
     };
   }, []);
+  const seconds = Math.floor((tick * 120) / 1000);
   return (
-    <Text color="cyan">
-      {FRAMES[frame] ?? ''} {label}
+    <Text>
+      <Text bold>{FRAMES[tick % FRAMES.length] ?? '·'}</Text> {label}…
+      {seconds > 0 ? <Text dimColor> {seconds}s</Text> : null}
     </Text>
   );
 }

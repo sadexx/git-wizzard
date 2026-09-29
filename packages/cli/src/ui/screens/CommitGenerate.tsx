@@ -1,11 +1,12 @@
 import { useCallback, useState, type ReactElement } from 'react';
-import { Box, Text, useInput, type Key } from 'ink';
+import { useInput, type Key } from 'ink';
 import type { CommitResult, Result } from '@git-assistant/shared';
 import { renderError } from '#errors.js';
 import type { ClientError, GitAssistantClient } from '#mcp/client.js';
 import { useMcpTool } from '#ui/hooks/useMcpTool.js';
 import { Spinner } from '#ui/components/Spinner.js';
 import { ConfirmPrompt } from '#ui/components/ConfirmPrompt.js';
+import { ErrorView, Screen, Success } from '#ui/components/Screen.js';
 
 type Phase =
   | { kind: 'review' }
@@ -41,51 +42,51 @@ export function CommitGenerate({ client, onBack }: { client: GitAssistantClient;
 
   useInput(
     (input: string, key: Key) => {
-      if (phase.kind === 'done' || phase.kind === 'failed' || state.status === 'error') {
-        if (key.escape || input === 'b') onBack();
-        else if (input === 'r' && state.status === 'error') reload();
-        else if (input === 'a' && state.status === 'error' && !all) setAll(true);
-      }
+      if (key.escape || input === 'b') onBack();
+      else if (input === 'r' && state.status === 'error') reload();
+      else if (input === 'a' && state.status === 'error' && !all) setAll(true);
     },
-    { isActive: !(state.status === 'success' && phase.kind === 'review') },
+    { isActive: !(state.status === 'success' && phase.kind === 'review') && phase.kind !== 'committing' },
   );
 
-  if (state.status === 'loading') return <Spinner label="Generating commit message..." />;
+  const title = all ? 'Commit · all tracked changes' : 'Commit · staged changes';
+  if (state.status === 'loading') {
+    return (
+      <Screen title={title} hints={['esc back']}>
+        <Spinner label="Generating commit message" />
+      </Screen>
+    );
+  }
   if (state.status === 'error') {
     return (
-      <Box flexDirection="column">
-        <Text color="red">{state.message}</Text>
-        <Text dimColor>r: retry · {all ? '' : 'a: include all tracked changes · '}b/Esc: back</Text>
-      </Box>
+      <Screen title={title} hints={['r retry', ...(all ? [] : ['a include all tracked changes']), 'esc back']}>
+        <ErrorView message={state.message} />
+      </Screen>
     );
   }
 
   if (phase.kind === 'review') {
     return (
-      <ConfirmPrompt
-        label={all ? 'Commit message (all tracked changes)' : 'Commit message'}
-        value={state.data.message}
-        onConfirm={commit}
-        onAbort={onBack}
-        onRegenerate={reload}
-      />
-    );
-  }
-  if (phase.kind === 'committing') return <Spinner label="Creating commit..." />;
-  if (phase.kind === 'done') {
-    return (
-      <Box flexDirection="column">
-        <Text color="green">
-          Created commit {phase.sha.slice(0, 8)} on {phase.branch}
-        </Text>
-        <Text dimColor>b/Esc: back</Text>
-      </Box>
+      <Screen title={title} hints={[]}>
+        <ConfirmPrompt
+          label="Commit message"
+          value={state.data.message}
+          onConfirm={commit}
+          onAbort={onBack}
+          onRegenerate={reload}
+        />
+      </Screen>
     );
   }
   return (
-    <Box flexDirection="column">
-      <Text color="red">{phase.message}</Text>
-      <Text dimColor>b/Esc: back</Text>
-    </Box>
+    <Screen title={title} hints={phase.kind === 'committing' ? [] : ['esc back']}>
+      {phase.kind === 'committing' ? <Spinner label="Creating commit" /> : null}
+      {phase.kind === 'done' ? (
+        <Success>
+          Created commit {phase.sha.slice(0, 8)} on {phase.branch}
+        </Success>
+      ) : null}
+      {phase.kind === 'failed' ? <ErrorView message={phase.message} /> : null}
+    </Screen>
   );
 }

@@ -1,11 +1,12 @@
 import { useCallback, useState, type ReactElement } from 'react';
-import { Box, Text, useInput, type Key } from 'ink';
+import { Text, useInput, type Key } from 'ink';
 import type { CreateBranchOutput, Result } from '@git-assistant/shared';
 import { renderError } from '#errors.js';
 import type { ClientError, GitAssistantClient } from '#mcp/client.js';
 import { useMcpTool } from '#ui/hooks/useMcpTool.js';
 import { Spinner } from '#ui/components/Spinner.js';
 import { ConfirmPrompt } from '#ui/components/ConfirmPrompt.js';
+import { ErrorView, Screen, Success } from '#ui/components/Screen.js';
 
 type Phase =
   | { kind: 'choosing'; index: number }
@@ -63,57 +64,48 @@ export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; 
         if (key.escape || input === 'b') onBack();
       }
     },
-    { isActive: phase.kind !== 'confirming' },
+    { isActive: phase.kind !== 'confirming' && phase.kind !== 'creating' },
   );
 
-  if (state.status === 'loading') return <Spinner label="Requesting branch suggestions..." />;
-  if (state.status === 'error') {
+  if (state.status !== 'success') {
     return (
-      <Box flexDirection="column">
-        <Text color="red">{state.message}</Text>
-        <Text dimColor>r: retry · b/Esc: back</Text>
-      </Box>
+      <Screen title="Branch" hints={state.status === 'error' ? ['r retry', 'esc back'] : ['esc back']}>
+        {state.status === 'loading' ? <Spinner label="Suggesting branch names" /> : null}
+        {state.status === 'error' ? <ErrorView message={state.message} /> : null}
+      </Screen>
     );
   }
 
   if (phase.kind === 'confirming') {
     return (
-      <ConfirmPrompt
-        label="Create branch"
-        value={phase.name}
-        onConfirm={createBranch}
-        onAbort={() => setPhase({ kind: 'choosing', index: 0 })}
-      />
+      <Screen title="Branch" hints={[]}>
+        <ConfirmPrompt
+          label="Create branch"
+          value={phase.name}
+          onConfirm={createBranch}
+          onAbort={() => setPhase({ kind: 'choosing', index: 0 })}
+        />
+      </Screen>
     );
   }
-  if (phase.kind === 'creating') return <Spinner label="Creating branch..." />;
-  if (phase.kind === 'done') {
+  if (phase.kind !== 'choosing') {
     return (
-      <Box flexDirection="column">
-        <Text color="green">Created and switched to {phase.branch}.</Text>
-        <Text dimColor>b/Esc: back</Text>
-      </Box>
-    );
-  }
-  if (phase.kind === 'failed') {
-    return (
-      <Box flexDirection="column">
-        <Text color="red">{phase.message}</Text>
-        <Text dimColor>b/Esc: back</Text>
-      </Box>
+      <Screen title="Branch" hints={phase.kind === 'creating' ? [] : ['esc back']}>
+        {phase.kind === 'creating' ? <Spinner label="Creating branch" /> : null}
+        {phase.kind === 'done' ? <Success>Created and switched to {phase.branch}</Success> : null}
+        {phase.kind === 'failed' ? <ErrorView message={phase.message} /> : null}
+      </Screen>
     );
   }
 
   return (
-    <Box flexDirection="column">
-      <Text bold>Branch suggestions</Text>
+    <Screen title="Branch · suggestions" hints={['↑/↓ select', 'enter create', 'r regenerate', 'esc back']}>
       {suggestions.map((name: string, i: number) => (
-        <Text key={name} {...(i === phase.index && { color: 'green' })}>
+        <Text key={name} bold={i === phase.index}>
           {i === phase.index ? '❯ ' : '  '}
           {name}
         </Text>
       ))}
-      <Text dimColor>↑/↓ select · Enter confirm · r regenerate · b/Esc back</Text>
-    </Box>
+    </Screen>
   );
 }

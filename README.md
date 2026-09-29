@@ -49,7 +49,7 @@ Run `git-assistant` with no arguments for the interactive menu.
 
 | Command | What it does |
 | --- | --- |
-| `git-assistant` | Interactive menu: view diff, suggest a branch, generate a commit (press `a` when nothing is staged to include all tracked changes), write a PR description. |
+| `git-assistant` | Interactive UI: commit (press `a` when nothing is staged to include all tracked changes), branch, pull request, status, and a scrollable diff. Keys: ↑/↓ or 1–5 to pick, `esc` back, `q` quit. |
 | `git-assistant status` | Current branch, upstream, ahead/behind, and changed files. |
 | `git-assistant diff [--staged]` | Unstaged (default) or staged changes with per-file line counts. |
 | `git-assistant commit [-a] [--hint <text>] [-y \| --dry-run]` | Generate a commit message from **staged** changes (with `-a`, all changes to tracked files, like `git commit -a`; nothing is staged unless you confirm) in the style of your recent commits (falling back to Conventional Commits), then confirm, edit, regenerate, or abort before committing. |
