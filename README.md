@@ -2,6 +2,8 @@
 
 AI-assisted git from your terminal: write commit messages and name branches from your actual changes, using OpenAI or Google Gemini.
 
+![gitwizz interactive menu](docs/screenshot.png)
+
 ```console
 $ git add -A
 $ gitwizz commit
