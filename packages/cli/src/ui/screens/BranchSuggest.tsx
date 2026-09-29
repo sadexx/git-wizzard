@@ -70,6 +70,7 @@ export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; 
     return (
       <Screen title="Branch" hints={[]}>
         <TextInput
+          key="hint"
           label="What is this branch for? (empty clears the hint)"
           initial={hint ?? ''}
           placeholder="e.g. payments retry for the checkout release"
@@ -84,6 +85,7 @@ export function BranchSuggest({ client, onBack }: { client: GitAssistantClient; 
     return (
       <Screen title="Branch" hints={[]}>
         <TextInput
+          key="name"
           label="Branch name"
           initial={phase.initial}
           validate={validateBranchName}

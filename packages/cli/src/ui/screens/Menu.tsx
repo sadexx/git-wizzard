@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import { Box, Text, useApp, useInput } from 'ink';
 import { SelectList } from '#ui/components/SelectList.js';
 
-export type MenuTarget = 'commit' | 'branch' | 'pr' | 'status' | 'diff';
+export type MenuTarget = 'commit' | 'branch' | 'pr' | 'status' | 'diff' | 'hook' | 'auth';
 
 const ITEMS: ReadonlyArray<{ key: MenuTarget; label: string; description: string }> = [
   { key: 'commit', label: 'Commit', description: 'message for staged or all tracked changes' },
@@ -10,6 +10,8 @@ const ITEMS: ReadonlyArray<{ key: MenuTarget; label: string; description: string
   { key: 'pr', label: 'Pull request', description: 'title and description for this branch' },
   { key: 'status', label: 'Status', description: 'branch, upstream, and changed files' },
   { key: 'diff', label: 'Diff', description: 'unstaged or staged changes' },
+  { key: 'hook', label: 'Git hook', description: 'AI drafts inside plain git commit' },
+  { key: 'auth', label: 'Auth', description: 'provider, model, and API key' },
 ];
 
 export function Menu({

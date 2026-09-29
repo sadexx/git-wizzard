@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { hookScript, installHook, uninstallHook } from '#commands/hook.js';
+import { hookScript, hookState, installHook, uninstallHook } from '#commands/hook.js';
 
 function tempHookPath(): string {
   return join(mkdtempSync(join(tmpdir(), 'git-assistant-hook-')), 'hooks', 'prepare-commit-msg');
@@ -46,7 +46,13 @@ test('installHook creates an executable hook, updates its own, and never touches
   assert.equal(uninstallHook(path), 'removed');
   assert.equal(uninstallHook(path), 'absent');
 
+  assert.equal(hookState(path), 'absent');
+  installHook(path, ['git-assistant']);
+  assert.equal(hookState(path), 'installed');
+  uninstallHook(path);
+
   writeFileSync(path, '#!/bin/sh\necho mine\n');
+  assert.equal(hookState(path), 'foreign');
   assert.equal(installHook(path, ['git-assistant']), 'foreign');
   assert.equal(uninstallHook(path), 'foreign');
   assert.equal(readFileSync(path, 'utf8'), '#!/bin/sh\necho mine\n');

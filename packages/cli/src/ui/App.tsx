@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ReactElement } from 'react';
 import { Box, render } from 'ink';
-import type { GitStatus, Result } from '@git-assistant/shared';
-import { resolveConfiguredAdapter } from '#auth/flow.js';
+import type { AuthError, GitStatus, Result } from '@git-assistant/shared';
+import { activeAuth, defaultAuthDeps, resolveConfiguredAdapter, type ActiveAuth } from '#auth/flow.js';
 import { renderError } from '#errors.js';
 import { connectClient, type ClientError, type GitAssistantClient } from '#mcp/client.js';
 import { Header } from '#ui/components/Header.js';
@@ -11,6 +11,8 @@ import { Diff } from '#ui/screens/Diff.js';
 import { BranchSuggest } from '#ui/screens/BranchSuggest.js';
 import { CommitGenerate } from '#ui/screens/CommitGenerate.js';
 import { PrDescribe } from '#ui/screens/PrDescribe.js';
+import { Hook } from '#ui/screens/Hook.js';
+import { Auth } from '#ui/screens/Auth.js';
 
 export function App({ client }: { client: GitAssistantClient }): ReactElement {
   const [screen, setScreen] = useState<MenuTarget | 'menu'>('menu');
@@ -22,18 +24,25 @@ export function App({ client }: { client: GitAssistantClient }): ReactElement {
     setScreen(target);
   }, []);
 
-  // Refresh the header whenever the menu shows: a commit or a new branch changes what it says.
+  const [model, setModel] = useState<string | undefined>(undefined);
+
+  // Refresh the header whenever the menu shows: a commit, a new branch, or a new setup changes what it says.
   useEffect(() => {
     if (screen !== 'menu') return;
     client
       .getStatus()
       .then((result: Result<GitStatus, ClientError>) => setStatus(result.ok ? result.value : undefined))
       .catch(() => setStatus(undefined));
+    activeAuth(defaultAuthDeps())
+      .then((auth: Result<ActiveAuth, AuthError>) =>
+        setModel(auth.ok ? `${auth.value.config.provider} ${auth.value.config.model}` : 'no provider, see Auth'),
+      )
+      .catch(() => setModel(undefined));
   }, [client, screen]);
 
   return (
     <Box flexDirection="column">
-      <Header status={status} />
+      <Header status={status} model={model} />
       {body(screen, client, back, open, menuIndex(lastTarget))}
     </Box>
   );
@@ -57,6 +66,10 @@ function body(
       return <CommitGenerate client={client} onBack={back} />;
     case 'pr':
       return <PrDescribe client={client} onBack={back} />;
+    case 'hook':
+      return <Hook onBack={back} />;
+    case 'auth':
+      return <Auth onBack={back} />;
     case 'menu':
       return <Menu onSelect={open} initial={menuPosition} />;
   }

@@ -48,6 +48,7 @@ export function PrDescribe({ client, onBack }: { client: GitAssistantClient; onB
     return (
       <Screen title="Pull request" hints={[]}>
         <TextInput
+          key="hint"
           label="What should reviewers know about this change? (empty clears the hint)"
           initial={hint ?? ''}
           placeholder="e.g. unblocks the checkout release"
@@ -62,6 +63,7 @@ export function PrDescribe({ client, onBack }: { client: GitAssistantClient; onB
     return (
       <Screen title="Pull request" hints={[]}>
         <TextInput
+          key="base"
           label="Base branch the PR targets"
           initial={shownBase ?? ''}
           placeholder="e.g. origin/main"

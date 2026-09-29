@@ -12,10 +12,13 @@ export function TextInput({
   validate,
   onSubmit,
   onCancel,
+  mask = false,
 }: {
   label: string;
   initial?: string;
   placeholder?: string;
+  /** Show • per character (API keys). */
+  mask?: boolean;
   validate?: (value: string) => string | undefined;
   onSubmit: (value: string) => void;
   onCancel: () => void;
@@ -46,7 +49,7 @@ export function TextInput({
       <Box borderStyle="round" borderDimColor paddingX={1}>
         <Text>
           <Text dimColor>{'> '}</Text>
-          {value === '' ? <Text dimColor>{placeholder}</Text> : value}
+          {value === '' ? <Text dimColor>{placeholder}</Text> : mask ? '•'.repeat(value.length) : value}
           <Text inverse> </Text>
         </Text>
       </Box>

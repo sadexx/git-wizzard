@@ -76,8 +76,14 @@ export function uninstallHook(path: string): 'removed' | 'absent' | 'foreign' {
   return 'removed';
 }
 
-/** Honors core.hooksPath and linked worktrees. */
-function hookPathOrFail(): string | undefined {
+/** Is the hook at `path` ours, someone else's, or not there? */
+export function hookState(path: string): 'installed' | 'absent' | 'foreign' {
+  if (!existsSync(path)) return 'absent';
+  return readFileSync(path, 'utf8').includes(MARKER) ? 'installed' : 'foreign';
+}
+
+/** Where the hook lives for the current repository (honors core.hooksPath and worktrees); undefined outside one. */
+export function hookPath(): string | undefined {
   try {
     const hooksDir = execFileSync('git', ['rev-parse', '--git-path', 'hooks'], {
       encoding: 'utf8',
@@ -85,8 +91,12 @@ function hookPathOrFail(): string | undefined {
     }).trim();
     return join(resolve(hooksDir), HOOK);
   } catch {
-    return fail('Not a git repository', 'Run git-assistant from inside a git repository.');
+    return undefined;
   }
+}
+
+function hookPathOrFail(): string | undefined {
+  return hookPath() ?? fail('Not a git repository', 'Run git-assistant from inside a git repository.');
 }
 
 function fail(message: string, hint?: string): undefined {

@@ -5,13 +5,17 @@ import type { GitStatus } from '@git-assistant/shared';
 import { plural } from '#format.js';
 import { VERSION } from '#version.js';
 
-/** Rounded banner: name and version, then where you are (path · branch · upstream · changes). */
-export function Header({ status }: { status: GitStatus | undefined }): ReactElement {
+/** Rounded banner: name, version, and model in use, then where you are (path · branch · upstream · changes). */
+export function Header({ status, model }: { status: GitStatus | undefined; model: string | undefined }): ReactElement {
   return (
     <Box borderStyle="round" borderDimColor paddingX={1} flexDirection="column">
       <Text>
         <Text bold>✻ git-assistant</Text>
-        <Text dimColor> v{VERSION}</Text>
+        <Text dimColor>
+          {' '}
+          v{VERSION}
+          {model !== undefined ? ` · ${model}` : ''}
+        </Text>
       </Text>
       <Text dimColor wrap="truncate-middle">
         {[tildePath(process.cwd()), ...(status !== undefined ? repoFacts(status) : [])].join(' · ')}
