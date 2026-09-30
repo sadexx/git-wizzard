@@ -11,11 +11,13 @@ import { TextInput } from '#ui/components/TextInput.js';
 import { ErrorView, Options, Proposal, Screen, Success } from '#ui/components/Screen.js';
 import { hintLabel, validateHint } from '#ui/inputs.js';
 import { StageFiles } from '#ui/screens/StageFiles.js';
+import { Push } from '#ui/screens/Push.js';
 
 type Phase =
   | { kind: 'review' }
   | { kind: 'hint' }
   | { kind: 'stage' }
+  | { kind: 'push' }
   | { kind: 'committing' }
   | { kind: 'done'; sha: string; branch: string; summary: string }
   | { kind: 'failed'; message: string };
@@ -77,11 +79,12 @@ export function CommitGenerate({ client, onBack }: { client: GitWizzardClient; o
   };
 
   const settled = phase.kind === 'done' || phase.kind === 'failed';
+  // After a commit, the Push/Back list handles the keys.
   useInput(
     (_input: string, key: Key) => {
       if (key.escape || (settled && key.return)) onBack();
     },
-    { isActive: settled || (state.status === 'loading' && phase.kind === 'review') },
+    { isActive: phase.kind === 'failed' || (state.status === 'loading' && phase.kind === 'review') },
   );
 
   const options = <Options items={[all ? 'all tracked changes' : 'staged changes', hint && `hint: ${hint}`]} />;
@@ -113,14 +116,25 @@ export function CommitGenerate({ client, onBack }: { client: GitWizzardClient; o
       />
     );
   }
+  if (phase.kind === 'push') return <Push client={client} onBack={onBack} />;
   if (phase.kind === 'committing' || settled) {
     return (
-      <Screen title="Commit" hints={settled ? ['enter/esc back'] : []}>
+      <Screen title="Commit" hints={phase.kind === 'done' ? LIST_HINTS : settled ? ['enter/esc back'] : []}>
         {phase.kind === 'committing' ? <Spinner label="Creating commit" /> : null}
         {phase.kind === 'done' ? (
-          <Success>
-            Created commit {phase.sha.slice(0, 8)} on {phase.branch}: {phase.summary}
-          </Success>
+          <>
+            <Success>
+              Created commit {phase.sha.slice(0, 8)} on {phase.branch}: {phase.summary}
+            </Success>
+            <Box marginTop={1}>
+              <SelectList
+                key="done"
+                items={[{ label: 'Push…', description: 'send it to the remote' }, { label: 'Back' }]}
+                onSelect={(index: number) => (index === 0 ? setPhase({ kind: 'push' }) : onBack())}
+                onCancel={onBack}
+              />
+            </Box>
+          </>
         ) : null}
         {phase.kind === 'failed' ? <ErrorView message={phase.message} /> : null}
       </Screen>

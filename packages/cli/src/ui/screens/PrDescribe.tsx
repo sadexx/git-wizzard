@@ -8,8 +8,9 @@ import { SelectList } from '#ui/components/SelectList.js';
 import { TextInput } from '#ui/components/TextInput.js';
 import { ErrorView, Options, Proposal, Screen } from '#ui/components/Screen.js';
 import { hintLabel, validateBase, validateHint } from '#ui/inputs.js';
+import { Push } from '#ui/screens/Push.js';
 
-type Phase = { kind: 'view' } | { kind: 'hint' } | { kind: 'base' };
+type Phase = { kind: 'view' } | { kind: 'hint' } | { kind: 'base' } | { kind: 'push' };
 
 const LIST_HINTS = ['↑/↓ select', 'enter choose', 'esc back'];
 
@@ -74,6 +75,7 @@ export function PrDescribe({ client, onBack }: { client: GitWizzardClient; onBac
       </Screen>
     );
   }
+  if (phase.kind === 'push') return <Push client={client} onBack={view} />;
   if (state.status === 'loading') {
     return (
       <Screen title="Pull request" hints={['esc back']}>
@@ -89,6 +91,7 @@ export function PrDescribe({ client, onBack }: { client: GitWizzardClient; onBac
     [state.status === 'error' ? 'Retry' : 'Regenerate', undefined, reload],
     ['Change base…', 'default: origin’s default branch, else main/master', () => setPhase({ kind: 'base' })],
     [hintLabel(hint), 'tell the model what matters', () => setPhase({ kind: 'hint' })],
+    ['Push…', 'the PR needs this branch on the remote', () => setPhase({ kind: 'push' })],
     ['Back', undefined, onBack],
   ];
   return (

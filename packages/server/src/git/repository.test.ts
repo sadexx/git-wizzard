@@ -101,6 +101,32 @@ test('stage adds new and deleted files, unstages before the first commit, and tr
   assert.equal(porcelain(), 'D  a.txt\n?? *.txt\n');
 });
 
+test('push sets an upstream on first push, counts commits later, and never forces', async () => {
+  const { dir, git } = await tempRepo();
+  const repo = await open(dir);
+  git('commit', '-q', '--allow-empty', '-m', 'init');
+  const none = await repo.push();
+  assert.equal(!none.ok && none.error.kind === 'GitError' && none.error.reason, 'no_remote');
+
+  const remote = await mkdtemp(join(tmpdir(), 'git-wizzard-remote-'));
+  execFileSync('git', ['init', '-q', '--bare', '-b', 'main', remote]);
+  git('remote', 'add', 'origin', remote);
+  assert.deepEqual(await repo.push(), { ok: true, value: { branch: 'main', upstream: 'origin/main' } });
+
+  git('commit', '-q', '--allow-empty', '-m', 'two');
+  git('commit', '-q', '--allow-empty', '-m', 'three');
+  assert.deepEqual(await repo.push(), { ok: true, value: { branch: 'main', upstream: 'origin/main', commits: 2 } });
+
+  // Someone else pushes first: ours must be rejected, not forced over theirs.
+  const other = await mkdtemp(join(tmpdir(), 'git-wizzard-other-'));
+  execFileSync('git', ['clone', '-q', remote, other]);
+  execFileSync('git', [...identity, 'commit', '-q', '--allow-empty', '-m', 'theirs'], { cwd: other });
+  execFileSync('git', ['push', '-q'], { cwd: other });
+  git('commit', '-q', '--allow-empty', '-m', 'ours');
+  const rejected = await repo.push();
+  assert.equal(!rejected.ok && rejected.error.kind === 'GitError' && rejected.error.reason, 'push_rejected');
+});
+
 test('defaultBase prefers origin/HEAD, falls back to main, and is undefined before any commit', async () => {
   const { dir, git } = await tempRepo();
   const repo = await open(dir);

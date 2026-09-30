@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { commitResultSchema, gitDiffSchema, gitStatusSchema } from '#schemas/git.js';
+import { commitResultSchema, gitDiffSchema, gitStatusSchema, pushResultSchema } from '#schemas/git.js';
 
 export const toolNameSchema = z.enum([
   'get_status',
@@ -10,6 +10,7 @@ export const toolNameSchema = z.enum([
   'create_branch',
   'generate_pr_description',
   'stage_files',
+  'push',
 ]);
 export type ToolName = z.infer<typeof toolNameSchema>;
 
@@ -128,3 +129,8 @@ export const stageFilesInputSchema = z
 export type StageFilesInput = z.infer<typeof stageFilesInputSchema>;
 export const stageFilesOutputSchema = gitStatusSchema;
 export type StageFilesOutput = z.infer<typeof stageFilesOutputSchema>;
+
+export const pushInputSchema = z.object({ repoPath: z.string().min(1).optional() }).strict();
+export type PushInput = z.infer<typeof pushInputSchema>;
+export const pushOutputSchema = pushResultSchema;
+export type PushOutput = z.infer<typeof pushOutputSchema>;

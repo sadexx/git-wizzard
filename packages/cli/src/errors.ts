@@ -57,6 +57,10 @@ function errorHint(error: AppError): string | undefined {
           return 'Pass the target branch with --base <branch> (e.g. --base origin/main).';
         case 'no_commits':
           return 'Commit your work first, or pick a different --base.';
+        case 'no_remote':
+          return 'Add one with "git remote add origin <url>", or push once with "git push -u <remote> <branch>".';
+        case 'push_rejected':
+          return 'Pull their commits first ("git pull"), then push again.';
         default:
           return undefined;
       }

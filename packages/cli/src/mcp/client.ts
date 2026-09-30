@@ -14,6 +14,7 @@ import {
   ok,
   parseWithSchema,
   providerError,
+  pushOutputSchema,
   stageFilesOutputSchema,
   suggestBranchNameOutputSchema,
   TOOL_ERROR_META_KEY,
@@ -26,6 +27,7 @@ import {
   type GitDiff,
   type GitStatus,
   type ProviderError,
+  type PushResult,
   type Result,
 } from '@git-wizzard/shared';
 import { createSamplingHandler, type AdapterResolver } from '#mcp/sampling.js';
@@ -69,6 +71,7 @@ export interface GitWizzardClient {
     unstage?: readonly string[];
     repoPath?: string;
   }): Promise<Result<GitStatus, ClientError>>;
+  push(repoPath?: string): Promise<Result<PushResult, ClientError>>;
   close(): Promise<void>;
 }
 
@@ -202,6 +205,11 @@ class StdioGitWizzardClient implements GitWizzardClient {
 
     const raw = await this.rawCall('stage_files', args);
     return raw.ok ? parseWithSchema(stageFilesOutputSchema, raw.value) : raw;
+  }
+
+  public async push(repoPath?: string): Promise<Result<PushResult, ClientError>> {
+    const raw = await this.rawCall('push', repoPath !== undefined ? { repoPath } : {});
+    return raw.ok ? parseWithSchema(pushOutputSchema, raw.value) : raw;
   }
 
   public async close(): Promise<void> {

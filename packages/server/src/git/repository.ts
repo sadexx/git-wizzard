@@ -16,6 +16,9 @@ import {
   commitResultSchema,
   type CreateBranchOutput,
   createBranchOutputSchema,
+  type PushResult,
+  pushResultSchema,
+  causeMessage,
 } from '@git-wizzard/shared';
 import { parseStatus, parseNumstat } from '#git/parse.js';
 
@@ -163,6 +166,41 @@ export class GitRepository {
       return err(gitError('command_failed', 'Failed to update the staged files', cause));
     }
     return this.status();
+  }
+
+  /** Push the current branch to its upstream; without one, to `origin` (else the only remote), setting it. Never forces. */
+  public async push(): Promise<Result<PushResult, RepoError>> {
+    const status = await this.status();
+    if (!status.ok) return status;
+    const { branch, upstream, ahead } = status.value;
+    if (branch === '(detached)') return err(gitError('command_failed', 'HEAD is detached; switch to a branch to push'));
+
+    let remote: string | undefined;
+    if (upstream === undefined) {
+      const remotes = (await this.git.raw(['remote']).catch(() => '')).split('\n').filter((name: string) => name !== '');
+      remote = remotes.includes('origin') ? 'origin' : remotes.length === 1 ? remotes[0] : undefined;
+      if (remote === undefined) {
+        return err(
+          gitError('no_remote', remotes.length === 0 ? 'This repository has no remote' : `No upstream and no "origin" among ${remotes.join(', ')}`),
+        );
+      }
+    }
+    try {
+      await this.git.raw(remote === undefined ? ['push'] : ['push', '--set-upstream', remote, branch]);
+    } catch (cause) {
+      if (/\[rejected\]|non-fast-forward|fetch first/.test(causeMessage(cause) ?? '')) {
+        return err(gitError('push_rejected', 'The remote has commits you do not have', cause));
+      }
+      return err(gitError('command_failed', 'git push failed', cause));
+    }
+
+    const after = await this.status();
+    if (!after.ok) return after;
+    return parseWithSchema(pushResultSchema, {
+      branch,
+      upstream: after.value.upstream ?? upstream ?? `${remote}/${branch}`,
+      ...(upstream !== undefined ? { commits: ahead } : {}),
+    });
   }
 
   public async createBranch(name: string): Promise<Result<CreateBranchOutput, RepoError>> {

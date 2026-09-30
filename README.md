@@ -51,7 +51,7 @@ Run `gitwizz` with no arguments for the interactive menu.
 
 | Command | What it does |
 | --- | --- |
-| `gitwizz` | Interactive UI with the same options as the commands: commit (staged or all tracked, hint, edit in your git editor, regenerate, and **Choose files…** to tick files in or out of the index with `space`, new files included), branch (type, hint, your own name), pull request (base, hint), status, a scrollable diff, the git hook, and auth (set up, change model, status, log out). The header shows the provider and model in use. Keys: ↑/↓ or number keys to pick, `enter` choose, `esc` back, `q` quit. |
+| `gitwizz` | Interactive UI with the same options as the commands: commit (staged or all tracked, hint, edit in your git editor, regenerate, and **Choose files…** to tick files in or out of the index with `space`, new files included), push (after a confirmation; a new branch gets its upstream set on `origin`, and it never force-pushes, also offered after a commit and on the pull request screen), branch (type, hint, your own name), pull request (base, hint), status, a scrollable diff, the git hook, and auth (set up, change model, status, log out). The header shows the provider and model in use. Keys: ↑/↓ or number keys to pick, `enter` choose, `esc` back, `q` quit. |
 | `gitwizz status` | Current branch, upstream, ahead/behind, and changed files. |
 | `gitwizz diff [--staged]` | Unstaged (default) or staged changes with per-file line counts. |
 | `gitwizz commit [-a] [--hint <text>] [-y \| --dry-run]` | Generate a commit message from **staged** changes (with `-a`, all changes to tracked files, like `git commit -a`; nothing is staged unless you confirm) in the style of your recent commits (falling back to Conventional Commits), then confirm, edit, regenerate, or abort before committing. |
@@ -112,7 +112,7 @@ Default models: `gpt-5.4-mini` (OpenAI) and `gemini-3.6-flash` (Gemini).
 
 The project is an npm workspace with three packages:
 
-- **`packages/server`** is an [MCP](https://modelcontextprotocol.io) server that exposes git tools (`get_status`, `get_diff`, `suggest_branch_name`, `generate_commit_message`, `generate_pr_description`, `create_commit`, `create_branch`, `stage_files`). It never holds API keys. When it needs text generated, it asks the client via MCP *sampling*.
+- **`packages/server`** is an [MCP](https://modelcontextprotocol.io) server that exposes git tools (`get_status`, `get_diff`, `suggest_branch_name`, `generate_commit_message`, `generate_pr_description`, `create_commit`, `create_branch`, `stage_files`, `push`). It never holds API keys. When it needs text generated, it asks the client via MCP *sampling*.
 - **`packages/cli`** is the `gitwizz` command. It starts the server as a subprocess and answers sampling requests with your configured provider. Credentials are resolved only when a tool actually samples.
 - **`packages/shared`** holds the schemas, the `Result` type, and typed errors used by both sides.
 

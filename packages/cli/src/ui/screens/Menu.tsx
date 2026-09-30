@@ -2,10 +2,11 @@ import type { ReactElement } from 'react';
 import { Box, Text, useApp, useInput } from 'ink';
 import { SelectList } from '#ui/components/SelectList.js';
 
-export type MenuTarget = 'commit' | 'branch' | 'pr' | 'status' | 'diff' | 'hook' | 'auth';
+export type MenuTarget = 'commit' | 'push' | 'branch' | 'pr' | 'status' | 'diff' | 'hook' | 'auth';
 
 const ITEMS: ReadonlyArray<{ key: MenuTarget; label: string; description: string }> = [
   { key: 'commit', label: 'Commit', description: 'message for staged or all tracked changes' },
+  { key: 'push', label: 'Push', description: 'send this branch’s commits to the remote' },
   { key: 'branch', label: 'Branch', description: 'suggest a name and create it' },
   { key: 'pr', label: 'Pull request', description: 'title and description for this branch' },
   { key: 'status', label: 'Status', description: 'branch, upstream, and changed files' },

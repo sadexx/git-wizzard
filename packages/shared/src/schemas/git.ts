@@ -64,3 +64,13 @@ export const commitResultSchema = z
   })
   .strict();
 export type CommitResult = z.infer<typeof commitResultSchema>;
+
+/** `commits` is how many were ahead of the upstream; absent when the push created the remote branch. */
+export const pushResultSchema = z
+  .object({
+    branch: z.string().min(1),
+    upstream: z.string().min(1),
+    commits: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+export type PushResult = z.infer<typeof pushResultSchema>;

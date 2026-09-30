@@ -11,6 +11,7 @@ import { Diff } from '#ui/screens/Diff.js';
 import { BranchSuggest } from '#ui/screens/BranchSuggest.js';
 import { CommitGenerate } from '#ui/screens/CommitGenerate.js';
 import { PrDescribe } from '#ui/screens/PrDescribe.js';
+import { Push } from '#ui/screens/Push.js';
 import { Hook } from '#ui/screens/Hook.js';
 import { Auth } from '#ui/screens/Auth.js';
 
@@ -64,6 +65,8 @@ function body(
       return <BranchSuggest client={client} onBack={back} />;
     case 'commit':
       return <CommitGenerate client={client} onBack={back} />;
+    case 'push':
+      return <Push client={client} onBack={back} />;
     case 'pr':
       return <PrDescribe client={client} onBack={back} />;
     case 'hook':

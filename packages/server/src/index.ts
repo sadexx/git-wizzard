@@ -11,6 +11,7 @@ import { registerCreateCommitTool } from '#tools/create-commit.js';
 import { registerCreateBranchTool } from '#tools/create-branch.js';
 import { registerPrDescriptionTool } from '#tools/pr-description.js';
 import { registerStageFilesTool } from '#tools/stage-files.js';
+import { registerPushTool } from '#tools/push.js';
 
 export function createServer(): McpServer {
   const { version } = createRequire(import.meta.url)('../package.json') as { version: string };
@@ -23,10 +24,14 @@ export function createServer(): McpServer {
   registerCreateBranchTool(server);
   registerPrDescriptionTool(server);
   registerStageFilesTool(server);
+  registerPushTool(server);
   return server;
 }
 
 async function main(): Promise<void> {
+  // The client owns the terminal (the UI draws on it full screen), so git must fail rather than ask for a
+  // username/password there; credential helpers and ssh-agent still work.
+  process.env['GIT_TERMINAL_PROMPT'] = '0';
   const server = createServer();
   await server.connect(new StdioServerTransport());
 }
