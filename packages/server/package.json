@@ -20,8 +20,5 @@
     "@git-wizzard/shared": "*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "simple-git": "^3.36.0"
-  },
-  "devDependencies": {
-    "@types/node": "^26.2.0"
   }
 }
