@@ -56,7 +56,8 @@ Run `gitwizz` with no arguments for the interactive menu.
 | `gitwizz diff [--staged]` | Unstaged (default) or staged changes with per-file line counts. |
 | `gitwizz commit [-a] [--hint <text>] [-y \| --dry-run]` | Generate a commit message from **staged** changes (with `-a`, all changes to tracked files, like `git commit -a`; nothing is staged unless you confirm) in the style of your recent commits (falling back to Conventional Commits), then confirm, edit, regenerate, or abort before committing. |
 | `gitwizz branch [--type <type>] [--hint <text>] [-y \| --dry-run]` | Suggest branch names for **all uncommitted work** (staged, unstaged, and new files) and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
-| `gitwizz pr [--base <branch>] [--hint <text>]` | Write a pull request title and Markdown description from the commits on this branch that aren't on `<branch>` (default: origin's default branch, else `origin/main`, `origin/master`, `main`, `master`). Prints to stdout; changes nothing. Uncommitted work isn't included. |
+| `gitwizz push [-y]` | Push the current branch after a confirmation; a new branch gets its upstream set on `origin` (else the only remote). Never force-pushes; if the remote has commits you don't have, the push is rejected. |
+| `gitwizz pr [--base <branch>] [--hint <text>] [--open [-y]]` | Write a pull request title and Markdown description from the commits on this branch that aren't on `<branch>` (default: origin's default branch, else `origin/main`, `origin/master`, `main`, `master`). Prints to stdout; changes nothing. Uncommitted work isn't included. With `--open`, confirm, edit, regenerate, or abort, then open the PR with `gh pr create`, pushing the branch first if needed (needs the [GitHub CLI](https://cli.github.com), logged in). |
 | `gitwizz hook install` / `uninstall` | Add (or remove) a `prepare-commit-msg` hook so a plain `git commit` opens the editor with an AI draft. |
 | `gitwizz auth [--no-validate]` | Choose a provider (for **Custom**, a server URL), enter an API key, pick a model, and save it. In the interactive UI the model is picked from the list the provider reports (type to filter; any name you type works too). |
 | `gitwizz auth status` | Show the provider, model, masked key, and source (environment or saved config) that the AI commands will use. Exits 1 when nothing is set up. No network. |
@@ -67,7 +68,7 @@ Every command acts on the repository in the current directory. `--help` works on
 
 A diff shows *what* changed, not *why*. Pass `--hint` to tell the model the intent, for example `gitwizz commit --hint "retry on 429 from the payments API"` (up to 500 characters).
 
-When confirming, **regenerate** asks the model for a fresh proposal (a failed retry keeps the current one). **Edit** opens the same editor git uses (`GIT_EDITOR`, `core.editor`, `VISUAL`, `EDITOR`). Lines starting with `#` are ignored, and saving an empty text keeps the previous one. If the editor can't be used, you get a one-line prompt instead. `Ctrl-C` or `Ctrl-D` at the prompt aborts.
+When confirming, **regenerate** asks the model for a fresh proposal (a failed retry keeps the current one). **Edit** opens the same editor git uses (`GIT_EDITOR`, `core.editor`, `VISUAL`, `EDITOR`). Lines starting with `#` are ignored (so are Markdown headings in a PR description), and saving an empty text keeps the previous one. If the editor can't be used, you get a one-line prompt instead. `Ctrl-C` or `Ctrl-D` at the prompt aborts.
 
 ### Git hook
 
@@ -77,16 +78,17 @@ The hook is installed in the current repository (respecting `core.hooksPath`) an
 
 ### Scripting
 
-`commit` and `branch` ask for confirmation, so without a terminal they stop with an error instead of waiting. Choose explicitly:
+`commit`, `branch`, `push`, and `pr --open` ask for confirmation, so without a terminal they stop with an error instead of waiting. Choose explicitly:
 
-- `-y, --yes`: accept the generated message (or the first branch suggestion) without asking.
-- `--dry-run`: print only the result to stdout and change nothing.
+- `-y, --yes`: accept the generated message (or the first branch suggestion, or the PR description) without asking; for `push`, push without asking.
+- `--dry-run` (`commit`, `branch`): print only the result to stdout and change nothing.
 
 ```sh
 gitwizz commit --dry-run                    # just the message
 git commit -e -m "$(gitwizz commit --dry-run)" # review it in git's own editor
 gitwizz branch --dry-run | head -n1         # best branch name
-gitwizz pr > pr.md && gh pr create --title "$(head -n1 pr.md)" --body "$(tail -n +3 pr.md)"
+gitwizz push -y                             # push without the question
+gitwizz pr --open -y                        # describe and open the PR in one go
 ```
 
 `pr` prints only the description to stdout (title, blank line, body); the "Describing N commits not on <base>" note goes to stderr.

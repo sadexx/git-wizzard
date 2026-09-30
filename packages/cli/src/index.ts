@@ -6,6 +6,7 @@ import { registerDiffCommand } from '#commands/diff.js';
 import { registerBranchCommand } from '#commands/branch.js';
 import { registerCommitCommand } from '#commands/commit.js';
 import { registerPrCommand } from '#commands/pr.js';
+import { registerPushCommand } from '#commands/push.js';
 import { registerHookCommand } from '#commands/hook.js';
 import { startInteractiveUi } from '#ui/App.js';
 import { VERSION } from '#version.js';
@@ -26,7 +27,9 @@ Examples:
   gitwizz commit                  message for staged changes; confirm, edit, or regenerate
   gitwizz commit -a --hint "why"  include all tracked changes, steer with your intent
   gitwizz branch --type fix       suggest and create a branch for uncommitted work
+  gitwizz push                    push this branch (sets the upstream for a new one)
   gitwizz pr > pr.md              title and description for this branch's commits
+  gitwizz pr --open               write the description, then open the PR with gh
   gitwizz hook install            draft messages inside plain "git commit"
   gitwizz auth status             which provider, model, and key are in use`,
     );
@@ -36,6 +39,7 @@ Examples:
   registerDiffCommand(program);
   registerBranchCommand(program);
   registerCommitCommand(program);
+  registerPushCommand(program);
   registerPrCommand(program);
   registerHookCommand(program);
 

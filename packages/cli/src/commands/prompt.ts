@@ -37,13 +37,13 @@ export function confirmMode(options: ConfirmOptions, interactive: boolean): Conf
 }
 
 /** `confirmMode` for this process; reports a usage error (exit 1) instead of hanging on a closed stdin. */
-export function requireConfirmMode(options: ConfirmOptions): ConfirmMode | undefined {
+export function requireConfirmMode(
+  options: ConfirmOptions,
+  hint: string = 'Pass --yes to accept the suggestion, or --dry-run to only print it.',
+): ConfirmMode | undefined {
   const mode = confirmMode(options, stdin.isTTY === true && stdout.isTTY === true);
   if (mode === undefined) {
-    stderr.write(
-      'error: Cannot ask for confirmation without an interactive terminal\n' +
-        'hint: Pass --yes to accept the suggestion, or --dry-run to only print it.\n',
-    );
+    stderr.write(`error: Cannot ask for confirmation without an interactive terminal\nhint: ${hint}\n`);
     process.exitCode = 1;
   }
   return mode;
@@ -103,6 +103,12 @@ export function createActionPrompter(): ActionPrompter {
       return answer === '' ? current : answer;
     },
   };
+}
+
+/** `[y/N]` question: only y/yes confirms; anything else, EOF, or Ctrl-C declines. */
+export async function confirmYesNo(question: string): Promise<boolean> {
+  const answer = await ask(`${question} [y/N]: `);
+  return answer !== null && /^y(es)?$/i.test(answer.trim());
 }
 
 /** One line from stdin, or null on EOF / Ctrl-C so callers can treat it as abort instead of hanging. */
