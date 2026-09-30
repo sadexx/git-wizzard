@@ -9,6 +9,7 @@ export const toolNameSchema = z.enum([
   'create_commit',
   'create_branch',
   'generate_pr_description',
+  'stage_files',
 ]);
 export type ToolName = z.infer<typeof toolNameSchema>;
 
@@ -115,3 +116,15 @@ export type CreateBranchInput = z.infer<typeof createBranchInputSchema>;
 
 export const createBranchOutputSchema = z.object({ branch: z.string().min(1), created: z.boolean() });
 export type CreateBranchOutput = z.infer<typeof createBranchOutputSchema>;
+
+/** `stage` works like `git add`, `unstage` like `git reset`; paths are relative to the repo root. */
+export const stageFilesInputSchema = z
+  .object({
+    repoPath: z.string().min(1).optional(),
+    stage: z.array(z.string().min(1)).optional(),
+    unstage: z.array(z.string().min(1)).optional(),
+  })
+  .strict();
+export type StageFilesInput = z.infer<typeof stageFilesInputSchema>;
+export const stageFilesOutputSchema = gitStatusSchema;
+export type StageFilesOutput = z.infer<typeof stageFilesOutputSchema>;

@@ -10,17 +10,19 @@ import { SelectList } from '#ui/components/SelectList.js';
 import { TextInput } from '#ui/components/TextInput.js';
 import { ErrorView, Options, Proposal, Screen, Success } from '#ui/components/Screen.js';
 import { hintLabel, validateHint } from '#ui/inputs.js';
+import { StageFiles } from '#ui/screens/StageFiles.js';
 
 type Phase =
   | { kind: 'review' }
   | { kind: 'hint' }
+  | { kind: 'stage' }
   | { kind: 'committing' }
   | { kind: 'done'; sha: string; branch: string; summary: string }
   | { kind: 'failed'; message: string };
 
 const LIST_HINTS = ['↑/↓ select', 'enter choose', 'esc back'];
 
-/** Everything `gitwizz commit` does: staged or all tracked (-a), --hint, edit, regenerate. */
+/** Everything `gitwizz commit` does: staged or all tracked (-a), --hint, edit, regenerate; plus picking what is staged. */
 export function CommitGenerate({ client, onBack }: { client: GitWizzardClient; onBack: () => void }): ReactElement {
   const [all, setAll] = useState(false);
   const [hint, setHint] = useState<string | undefined>(undefined);
@@ -99,6 +101,18 @@ export function CommitGenerate({ client, onBack }: { client: GitWizzardClient; o
       </Screen>
     );
   }
+  if (phase.kind === 'stage') {
+    return (
+      <StageFiles
+        client={client}
+        onDone={() => {
+          setPhase({ kind: 'review' });
+          regenerate();
+        }}
+        onCancel={() => setPhase({ kind: 'review' })}
+      />
+    );
+  }
   if (phase.kind === 'committing' || settled) {
     return (
       <Screen title="Commit" hints={settled ? ['enter/esc back'] : []}>
@@ -125,6 +139,7 @@ export function CommitGenerate({ client, onBack }: { client: GitWizzardClient; o
   if (state.status === 'error') {
     const actions: ReadonlyArray<[string, () => void]> = [
       ['Retry', regenerate],
+      ['Choose files…', () => setPhase({ kind: 'stage' })],
       [scopeLabel, toggleScope],
       [hintLabel(hint), () => setPhase({ kind: 'hint' })],
       ['Back', onBack],
@@ -150,6 +165,7 @@ export function CommitGenerate({ client, onBack }: { client: GitWizzardClient; o
     ['Commit', undefined, () => commit(message)],
     ['Edit', 'in your git editor', () => edit(message)],
     ['Regenerate', undefined, regenerate],
+    ['Choose files…', 'stage or unstage', () => setPhase({ kind: 'stage' })],
     [hintLabel(hint), 'tell the model why', () => setPhase({ kind: 'hint' })],
     [scopeLabel, all ? 'like git commit' : 'like git commit -a', toggleScope],
     ['Cancel', undefined, onBack],

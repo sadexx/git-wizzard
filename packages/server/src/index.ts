@@ -10,6 +10,7 @@ import { registerCommitMessageTool } from '#tools/commit-message.js';
 import { registerCreateCommitTool } from '#tools/create-commit.js';
 import { registerCreateBranchTool } from '#tools/create-branch.js';
 import { registerPrDescriptionTool } from '#tools/pr-description.js';
+import { registerStageFilesTool } from '#tools/stage-files.js';
 
 export function createServer(): McpServer {
   const { version } = createRequire(import.meta.url)('../package.json') as { version: string };
@@ -21,6 +22,7 @@ export function createServer(): McpServer {
   registerCreateCommitTool(server);
   registerCreateBranchTool(server);
   registerPrDescriptionTool(server);
+  registerStageFilesTool(server);
   return server;
 }
 

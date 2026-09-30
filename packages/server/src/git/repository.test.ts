@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { GitRepository } from '#git/repository.js';
@@ -76,6 +76,29 @@ test('commit with all includes unstaged tracked changes but never untracked file
   assert.equal(status, '?? new.txt\n');
   const again = await repo.createCommit('nothing left', true);
   assert.equal(!again.ok && again.error.kind === 'GitError' && again.error.reason, 'nothing_to_commit');
+});
+
+test('stage adds new and deleted files, unstages before the first commit, and treats names literally', async () => {
+  const { dir, git } = await tempRepo();
+  git('config', 'user.name', 'Test');
+  git('config', 'user.email', 'test@example.com');
+  await writeFile(join(dir, 'a.txt'), 'a\n');
+  await writeFile(join(dir, '*.txt'), 'star\n');
+  const repo = await open(dir);
+  const porcelain = (): string => execFileSync('git', ['status', '--porcelain'], { cwd: dir, encoding: 'utf8' });
+
+  const added = await repo.stage(['*.txt'], []);
+  assert.deepEqual(added.ok && added.value.files.map((file: { path: string; index: string }) => [file.path, file.index]), [
+    ['*.txt', 'added'],
+    ['a.txt', 'unmodified'],
+  ]);
+  assert.equal((await repo.stage(['a.txt'], ['*.txt'])).ok, true);
+  assert.equal(porcelain(), 'A  a.txt\n?? *.txt\n');
+
+  git('commit', '-q', '-m', 'init');
+  await rm(join(dir, 'a.txt'));
+  assert.equal((await repo.stage(['a.txt'], [])).ok, true);
+  assert.equal(porcelain(), 'D  a.txt\n?? *.txt\n');
 });
 
 test('defaultBase prefers origin/HEAD, falls back to main, and is undefined before any commit', async () => {

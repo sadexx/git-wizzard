@@ -2,7 +2,7 @@ import { useState, type ReactElement } from 'react';
 import { Box, Text, useInput, useStdout, type Key } from 'ink';
 
 /** Rows used by the header box, screen title, hints, and margins around a scrollable body. */
-const CHROME_ROWS = 11;
+export const CHROME_ROWS = 11;
 
 /** Pre-rendered (ANSI-styled) lines in a window that fits the terminal; ↑/↓, PgUp/PgDn, g/G to move. */
 export function ScrollView({ lines }: { lines: readonly string[] }): ReactElement {

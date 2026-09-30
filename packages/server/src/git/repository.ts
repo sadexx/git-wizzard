@@ -152,6 +152,19 @@ export class GitRepository {
     return parseWithSchema(commitResultSchema, { sha, branch, summary });
   }
 
+  /** `git add` then `git reset` the given paths (as `status` prints them), and return the new status. */
+  public async stage(add: readonly string[], remove: readonly string[]): Promise<Result<GitStatus, RepoError>> {
+    // `:(literal)` keeps names like `*.txt` from acting as globs; `reset` also works before the first commit.
+    const specs = (paths: readonly string[]): string[] => paths.map((path: string) => `:(literal)${path}`);
+    try {
+      if (add.length > 0) await this.git.raw(['add', '--', ...specs(add)]);
+      if (remove.length > 0) await this.git.raw(['reset', '-q', '--', ...specs(remove)]);
+    } catch (cause) {
+      return err(gitError('command_failed', 'Failed to update the staged files', cause));
+    }
+    return this.status();
+  }
+
   public async createBranch(name: string): Promise<Result<CreateBranchOutput, RepoError>> {
     try {
       await this.git.checkoutLocalBranch(name);

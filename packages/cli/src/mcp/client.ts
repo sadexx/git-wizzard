@@ -14,6 +14,7 @@ import {
   ok,
   parseWithSchema,
   providerError,
+  stageFilesOutputSchema,
   suggestBranchNameOutputSchema,
   TOOL_ERROR_META_KEY,
   type AppError,
@@ -63,6 +64,11 @@ export interface GitWizzardClient {
     repoPath?: string;
   }): Promise<Result<CommitResult, ClientError>>;
   createBranch(options: { name: string; repoPath?: string }): Promise<Result<CreateBranchOutput, ClientError>>;
+  stageFiles(options: {
+    stage?: readonly string[];
+    unstage?: readonly string[];
+    repoPath?: string;
+  }): Promise<Result<GitStatus, ClientError>>;
   close(): Promise<void>;
 }
 
@@ -182,6 +188,20 @@ class StdioGitWizzardClient implements GitWizzardClient {
 
     const raw = await this.rawCall('create_branch', args);
     return raw.ok ? parseWithSchema(createBranchOutputSchema, raw.value) : raw;
+  }
+
+  public async stageFiles(options: {
+    stage?: readonly string[];
+    unstage?: readonly string[];
+    repoPath?: string;
+  }): Promise<Result<GitStatus, ClientError>> {
+    const args: Record<string, unknown> = {};
+    if (options.stage !== undefined) args['stage'] = options.stage;
+    if (options.unstage !== undefined) args['unstage'] = options.unstage;
+    if (options.repoPath !== undefined) args['repoPath'] = options.repoPath;
+
+    const raw = await this.rawCall('stage_files', args);
+    return raw.ok ? parseWithSchema(stageFilesOutputSchema, raw.value) : raw;
   }
 
   public async close(): Promise<void> {
