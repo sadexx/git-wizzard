@@ -17,6 +17,16 @@ export function validateBranchName(value: string): string | undefined {
   return /\s/.test(value) ? 'Branch names cannot contain spaces.' : undefined;
 }
 
+/** Models containing `query` (any case), those starting with it first; the list's own order otherwise. */
+export function rankModels(models: readonly string[], query: string): string[] {
+  const needle = query.toLowerCase();
+  const hits = models.filter((model: string) => model.toLowerCase().includes(needle));
+  return [
+    ...hits.filter((model: string) => model.toLowerCase().startsWith(needle)),
+    ...hits.filter((model: string) => !model.toLowerCase().startsWith(needle)),
+  ];
+}
+
 /** "Add a hint…" or "Change hint (…)". */
 export function hintLabel(hint: string | undefined): string {
   return hint === undefined ? 'Add a hint…' : 'Change hint…';

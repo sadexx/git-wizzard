@@ -25,6 +25,18 @@ test('saveConfig then loadConfig round-trips', async () => {
   assert.deepEqual(loaded, { ok: true, value: config });
 });
 
+test('a custom setup needs a URL but no key; the others need a key and take no URL check', async () => {
+  const dir = await tempDir();
+  const ollama: PersistedConfig = { version: 1, provider: 'custom', apiKey: '', model: 'qwen3:8b', baseUrl: 'http://localhost:11434/v1' };
+  assert.equal((await saveConfig(ollama, dir)).ok, true);
+  assert.deepEqual(await loadConfig(dir), { ok: true, value: ollama });
+
+  assert.equal((await saveConfig({ ...ollama, baseUrl: 'not a url' }, dir)).ok, false);
+  const { baseUrl: _baseUrl, ...noUrl } = ollama;
+  assert.equal((await saveConfig(noUrl, dir)).ok, false);
+  assert.equal((await saveConfig({ version: 1, provider: 'openai', apiKey: '', model: 'm' }, dir)).ok, false);
+});
+
 test('saveConfig wirtes a 0600 file on POSIX', { skip: process.platform === 'win32' }, async () => {
   const dir = await tempDir();
   await saveConfig({ version: 1, provider: 'gemini', apiKey: 'k', model: 'm' }, dir);

@@ -37,6 +37,21 @@ export class GeminiAdapter implements ProviderAdapter {
     }
   }
 
+  public async listModels(): Promise<Result<string[], ProviderError | AuthError>> {
+    try {
+      // Only models that write text; names come as "models/<id>".
+      const ids: string[] = [];
+      for await (const model of await this.client.models.list()) {
+        if (model.name !== undefined && model.supportedActions?.includes('generateContent') === true) {
+          ids.push(model.name.replace(/^models\//, ''));
+        }
+      }
+      return ok(ids.sort());
+    } catch (cause) {
+      return err(classifyError(cause));
+    }
+  }
+
   public async complete(request: CompletionRequest): Promise<Result<CompletionResponse, ProviderError>> {
     const { systemInstruction, contents } = toGeminiInput(request.messages);
     let raw: { text: string | undefined; modelVersion: string | undefined; candidates: unknown };

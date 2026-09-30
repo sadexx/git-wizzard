@@ -17,6 +17,8 @@ export interface ProviderAdapter {
   readonly provider: ProviderName;
   readonly model: string;
   validateKey(): Promise<Result<void, ProviderError | AuthError>>;
+  /** Model ids the key can use, sorted; an error when the provider can't list them (the model is then typed). */
+  listModels(): Promise<Result<string[], ProviderError | AuthError>>;
   complete(request: CompletionRequest): Promise<Result<CompletionResponse, ProviderError>>;
 }
 

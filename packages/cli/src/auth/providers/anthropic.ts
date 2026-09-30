@@ -43,6 +43,16 @@ export class AnthropicAdapter implements ProviderAdapter {
     }
   }
 
+  public async listModels(): Promise<Result<string[], ProviderError | AuthError>> {
+    try {
+      const ids: string[] = [];
+      for await (const model of this.client.models.list()) ids.push(model.id);
+      return ok(ids.sort());
+    } catch (cause) {
+      return err(classifyError(cause));
+    }
+  }
+
   public async complete(request: CompletionRequest): Promise<Result<CompletionResponse, ProviderError>> {
     const system = request.messages
       .filter((message: ChatMessage) => message.role === 'system')

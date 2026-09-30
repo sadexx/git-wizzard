@@ -30,6 +30,7 @@ export function registerAuthCommand(program: Command): void {
       const { config, source, savedIgnored } = result.value;
       process.stdout.write(
         `Provider: ${config.provider}\n` +
+          (config.baseUrl !== undefined ? `Server:   ${config.baseUrl}\n` : '') +
           `Model:    ${config.model}\n` +
           `API key:  ${maskKey(config.apiKey)}\n` +
           `Source:   ${source === 'environment' ? 'environment' : `saved config (${configPath()})`}\n`,
@@ -87,5 +88,6 @@ export function registerAuthCommand(program: Command): void {
 
 /** Enough of the key to tell two apart, never enough to use. */
 export function maskKey(key: string): string {
+  if (key === '') return '(none)';
   return key.length >= 12 ? `…${key.slice(-4)}` : '(set)';
 }

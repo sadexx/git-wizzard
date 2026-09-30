@@ -1,6 +1,6 @@
 # git-wizzard
 
-AI-assisted git from your terminal: write commit messages and name branches from your actual changes, using OpenAI, Google Gemini, or Anthropic Claude.
+AI-assisted git from your terminal: write commit messages and name branches from your actual changes, using OpenAI, Google Gemini, Anthropic Claude, or any OpenAI-compatible server, including a local model in Ollama that keeps your code on your machine.
 
 ![gitwizz interactive menu](docs/screenshot.png)
 
@@ -23,7 +23,7 @@ Created commit 3f9a1c2e on main: feat(auth): resolve provider credentials lazily
 
 - Node.js 22 or newer
 - git
-- An OpenAI, Gemini, or Anthropic API key (for `commit`, `branch`, and `pr`)
+- An OpenAI, Gemini, or Anthropic API key, or an OpenAI-compatible server such as Ollama (for `commit`, `branch`, and `pr`)
 
 ## Install
 
@@ -58,7 +58,7 @@ Run `gitwizz` with no arguments for the interactive menu.
 | `gitwizz branch [--type <type>] [--hint <text>] [-y \| --dry-run]` | Suggest branch names for **all uncommitted work** (staged, unstaged, and new files) and create/switch to the one you confirm. `<type>` is one of `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `hotfix`. |
 | `gitwizz pr [--base <branch>] [--hint <text>]` | Write a pull request title and Markdown description from the commits on this branch that aren't on `<branch>` (default: origin's default branch, else `origin/main`, `origin/master`, `main`, `master`). Prints to stdout; changes nothing. Uncommitted work isn't included. |
 | `gitwizz hook install` / `uninstall` | Add (or remove) a `prepare-commit-msg` hook so a plain `git commit` opens the editor with an AI draft. |
-| `gitwizz auth [--no-validate]` | Choose a provider and model, enter an API key, and save it. |
+| `gitwizz auth [--no-validate]` | Choose a provider (for **Custom**, a server URL), enter an API key, pick a model, and save it. In the interactive UI the model is picked from the list the provider reports (type to filter; any name you type works too). |
 | `gitwizz auth status` | Show the provider, model, masked key, and source (environment or saved config) that the AI commands will use. Exits 1 when nothing is set up. No network. |
 | `gitwizz auth model <name>` | Change the model of the saved setup, keeping its API key. No re-authentication, no network. |
 | `gitwizz auth logout` | Delete the saved credentials. Environment variables are not affected. |
@@ -99,15 +99,15 @@ Credentials come from the first source that provides them:
    - `OPENAI_API_KEY`: use OpenAI
    - `GEMINI_API_KEY` or `GOOGLE_API_KEY`: use Gemini
    - `ANTHROPIC_API_KEY`: use Claude
-   - `GIT_WIZZARD_PROVIDER`: `openai`, `gemini`, or `anthropic`; required to choose when more than one key is set
+   - `GIT_WIZZARD_PROVIDER`: `openai`, `gemini`, or `anthropic`; required to choose when more than one key is set (`custom` defers to the saved setup)
    - `GIT_WIZZARD_MODEL`: override the model used with the key above
-2. **Saved config** at `~/.git-wizzard/config.json`, written by `gitwizz auth` with `0600` permissions.
+2. **Saved config** at `~/.git-wizzard/config.json`, written by `gitwizz auth` with `0600` permissions. The **Custom (OpenAI-compatible)** provider is set up only this way: a server URL (e.g. `http://localhost:11434/v1` for Ollama, or a gateway), an optional API key, and a model.
 
 Run `gitwizz auth status` to see which source wins.
 
 Default models: `gpt-5.4-mini` (OpenAI), `gemini-3.6-flash` (Gemini), and `claude-opus-5-5` (Claude). With Claude, a request the model's safety checks decline is retried on another Claude model Anthropic picks (server-side fallback) on the models that support it.
 
-> **Privacy:** `commit`, `branch`, and `pr` send the changed file names and the diff to your chosen provider. The diff is capped at about 6,000 characters, shared across files so one large file can't hide the rest; lockfiles and minified or source-map files are named but their diffs are left out. `commit` also sends the current branch name and the subjects of your last 10 commits so it can match your style; `pr` sends the branch names and the messages of the commits it describes. `status` and `diff` never leave your machine.
+> **Privacy:** `commit`, `branch`, and `pr` send the changed file names and the diff to your chosen provider. The diff is capped at about 6,000 characters, shared across files so one large file can't hide the rest; lockfiles and minified or source-map files are named but their diffs are left out. `commit` also sends the current branch name and the subjects of your last 10 commits so it can match your style; `pr` sends the branch names and the messages of the commits it describes. `status` and `diff` never leave your machine. With the Custom provider pointed at a local server such as Ollama, nothing leaves your machine at all.
 
 ## How it works
 

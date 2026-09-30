@@ -21,6 +21,8 @@ export const DEFAULT_MODELS: Record<ProviderName, string> = {
   openai: 'gpt-5.4-mini',
   gemini: 'gemini-3.6-flash',
   anthropic: 'claude-opus-5-5',
+  /** No sensible default: whatever the server has (e.g. an Ollama model you pulled). */
+  custom: '',
 };
 
 export interface AuthDeps {
@@ -61,6 +63,8 @@ export function readEnvConfig(authEnv: AuthEnv): Result<ProviderConfig | null, A
       return err(authError('unsupported_provider', `Unknown provider "${authEnv.provider}"`));
     }
     provider = parsed.data;
+    // A custom server's URL and key live only in the saved setup.
+    if (provider === 'custom') return ok(null);
   } else {
     // Exactly one key set picks its provider; none or several needs GIT_WIZZARD_PROVIDER.
     const withKey = providerNameSchema.options.filter((name: ProviderName) => {
@@ -82,7 +86,7 @@ export function readEnvConfig(authEnv: AuthEnv): Result<ProviderConfig | null, A
 }
 
 function envKey(authEnv: AuthEnv, provider: ProviderName): string | undefined {
-  return { openai: authEnv.openaiKey, gemini: authEnv.geminiKey, anthropic: authEnv.anthropicKey }[provider];
+  return { openai: authEnv.openaiKey, gemini: authEnv.geminiKey, anthropic: authEnv.anthropicKey, custom: undefined }[provider];
 }
 
 /**
@@ -168,12 +172,20 @@ async function interactive(
   validate: boolean,
 ): Promise<Result<ProviderAdapter, AuthError | ProviderError>> {
   const provider = await deps.prompter.select('Select a provider', providerNameSchema.options);
-  const model = await deps.prompter.text('Model', DEFAULT_MODELS[provider]);
+  let baseUrl: string | undefined;
+  if (provider === 'custom') {
+    baseUrl = '';
+    while (!URL.canParse(baseUrl)) baseUrl = await deps.prompter.text('Server URL, e.g. http://localhost:11434/v1', '');
+  }
+  let model = '';
+  while (model === '') model = await deps.prompter.text('Model', DEFAULT_MODELS[provider]);
+  const server = baseUrl !== undefined ? { baseUrl } : {};
 
   const maxAttempts = 3;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const apiKey = await deps.prompter.secret(attempt === 1 ? 'API key' : 'API key (try again)');
-    const adapter = deps.createAdapter({ provider, apiKey, model });
+    const label = provider === 'custom' ? 'API key (enter for none)' : 'API key';
+    const apiKey = await deps.prompter.secret(attempt === 1 ? label : `${label} (try again)`);
+    const adapter = deps.createAdapter({ provider, apiKey, model, ...server });
 
     if (validate) {
       const valid = await adapter.validateKey();
@@ -184,7 +196,7 @@ async function interactive(
       }
     }
 
-    const saved = await deps.saveConfig({ version: 1 as const, provider, apiKey, model });
+    const saved = await deps.saveConfig({ version: 1 as const, provider, apiKey, model, ...server });
     if (!saved.ok) return err(saved.error);
 
     return ok(adapter);
@@ -202,6 +214,8 @@ export function createAdapter(config: ProviderConfig): ProviderAdapter {
       return new GeminiAdapter(config);
     case 'anthropic':
       return new AnthropicAdapter(config);
+    case 'custom':
+      return new OpenAiAdapter(config);
   }
 }
 

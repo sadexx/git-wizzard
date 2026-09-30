@@ -19,7 +19,8 @@ function params(overrides: Record<string, unknown> = {}): CreateMessageRequest['
 }
 
 function adapter(complete: ProviderAdapter['complete']): AdapterResolver {
-  return async () => ok({ provider: 'openai', model: 'm', validateKey: async () => ok(undefined), complete });
+  return async () =>
+    ok({ provider: 'openai', model: 'm', validateKey: async () => ok(undefined), listModels: async () => ok([]), complete });
 }
 
 test('toCompletionRequest prepends systemPrompt and maps assitant role', () => {

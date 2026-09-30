@@ -39,6 +39,7 @@ function fakeAdapter(config: ProviderConfig): ProviderAdapter {
     provider: config.provider,
     model: config.model,
     validateKey: async () => ok(undefined),
+    listModels: async () => ok([config.model]),
     complete: async () => ok({ text: '', model: config.model, finishReason: 'stop' }),
   };
 }
@@ -64,6 +65,10 @@ test('readEnvConfig picks Anthropic from ANTHROPIC_API_KEY alone, or by name amo
     ok: true,
     value: { provider: 'anthropic', apiKey: 'c', model: 'claude-opus-5-5' },
   });
+});
+
+test('readEnvConfig leaves a custom provider to the saved setup, which holds its URL', () => {
+  assert.deepEqual(readEnvConfig({ ...emptyEnv, provider: 'custom', openaiKey: 'a' }), { ok: true, value: null });
 });
 
 test('readEnvConfig rejects an unknown provider', () => {
