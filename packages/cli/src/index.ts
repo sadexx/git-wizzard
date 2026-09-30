@@ -8,7 +8,6 @@ import { registerCommitCommand } from '#commands/commit.js';
 import { registerPrCommand } from '#commands/pr.js';
 import { registerPushCommand } from '#commands/push.js';
 import { registerHookCommand } from '#commands/hook.js';
-import { startInteractiveUi } from '#ui/App.js';
 import { VERSION } from '#version.js';
 
 function buildProgram(): Command {
@@ -48,6 +47,7 @@ Examples:
 
 async function main(): Promise<void> {
   if (process.argv.length <= 2) {
+    const { startInteractiveUi } = await import('#ui/App.js');
     await startInteractiveUi();
     return;
   }

@@ -29,7 +29,7 @@ function deps(overrides: Partial<AuthDeps>): AuthDeps {
       saved.push(config);
       return ok(undefined);
     },
-    createAdapter: fakeAdapter,
+    createAdapter: async (config: ProviderConfig) => fakeAdapter(config),
     ...overrides,
   };
 }
@@ -131,7 +131,7 @@ test('readEnvConfig: a provider named without its key is an error, not a silent 
 });
 
 test('runAuthFlow reports environment credentials that fail validation', async () => {
-  const rejecting = (config: ProviderConfig): ProviderAdapter => ({
+  const rejecting = async (config: ProviderConfig): Promise<ProviderAdapter> => ({
     ...fakeAdapter(config),
     validateKey: async () => ({ ok: false, error: { kind: 'AuthError', reason: 'invalid_api_key', message: 'rejected' } }),
   });
@@ -139,9 +139,9 @@ test('runAuthFlow reports environment credentials that fail validation', async (
   assert.equal(!result.ok && result.error.reason, 'invalid_api_key');
 });
 
-test('createAdapter picks the adapter for each provider; custom speaks the OpenAI API', () => {
+test('createAdapter picks the adapter for each provider; custom speaks the OpenAI API', async () => {
   for (const provider of ['openai', 'gemini', 'anthropic', 'custom'] as const) {
-    const adapter = createAdapter({ provider, apiKey: 'k', model: 'm', ...(provider === 'custom' ? { baseUrl: 'http://localhost:1/v1' } : {}) });
+    const adapter = await createAdapter({ provider, apiKey: 'k', model: 'm', ...(provider === 'custom' ? { baseUrl: 'http://localhost:1/v1' } : {}) });
     assert.deepEqual([adapter.provider, adapter.model], [provider, 'm']);
   }
 });

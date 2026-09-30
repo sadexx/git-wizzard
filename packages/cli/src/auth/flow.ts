@@ -12,9 +12,6 @@ import {
   type Result,
 } from '@git-wizzard/shared';
 import type { ProviderAdapter, ProviderConfig } from '#auth/provider-adapter.js';
-import { OpenAiAdapter } from '#auth/providers/openai.js';
-import { GeminiAdapter } from '#auth/providers/gemini.js';
-import { AnthropicAdapter } from '#auth/providers/anthropic.js';
 import { loadConfig, saveConfig } from '#auth/config.js';
 
 export const DEFAULT_MODELS: Record<ProviderName, string> = {
@@ -30,7 +27,7 @@ export interface AuthDeps {
   readonly prompter: Prompter;
   readonly loadConfig: () => Promise<Result<PersistedConfig | null, AuthError>>;
   readonly saveConfig: (config: PersistedConfig) => Promise<Result<void, AuthError>>;
-  readonly createAdapter: (config: ProviderConfig) => ProviderAdapter;
+  readonly createAdapter: (config: ProviderConfig) => Promise<ProviderAdapter>;
 }
 
 export interface AuthEnv {
@@ -155,7 +152,7 @@ async function finalize(
   config: ProviderConfig,
   opts: { persist: boolean; validate: boolean },
 ): Promise<Result<ProviderAdapter, AuthError | ProviderError>> {
-  const adapter = deps.createAdapter(config);
+  const adapter = await deps.createAdapter(config);
   if (opts.validate) {
     const valid = await adapter.validateKey();
     if (!valid.ok) return err(valid.error);
@@ -185,7 +182,7 @@ async function interactive(
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const label = provider === 'custom' ? 'API key (enter for none)' : 'API key';
     const apiKey = await deps.prompter.secret(attempt === 1 ? label : `${label} (try again)`);
-    const adapter = deps.createAdapter({ provider, apiKey, model, ...server });
+    const adapter = await deps.createAdapter({ provider, apiKey, model, ...server });
 
     if (validate) {
       const valid = await adapter.validateKey();
@@ -206,16 +203,16 @@ async function interactive(
 
 // ---- Real dependency wiring (thin I/O; not unit-tested) ----
 
-export function createAdapter(config: ProviderConfig): ProviderAdapter {
+/** Each SDK is imported only when its provider is used: loading all three up front slows every command. */
+export async function createAdapter(config: ProviderConfig): Promise<ProviderAdapter> {
   switch (config.provider) {
     case 'openai':
-      return new OpenAiAdapter(config);
-    case 'gemini':
-      return new GeminiAdapter(config);
-    case 'anthropic':
-      return new AnthropicAdapter(config);
     case 'custom':
-      return new OpenAiAdapter(config);
+      return new (await import('#auth/providers/openai.js')).OpenAiAdapter(config);
+    case 'gemini':
+      return new (await import('#auth/providers/gemini.js')).GeminiAdapter(config);
+    case 'anthropic':
+      return new (await import('#auth/providers/anthropic.js')).AnthropicAdapter(config);
   }
 }
 

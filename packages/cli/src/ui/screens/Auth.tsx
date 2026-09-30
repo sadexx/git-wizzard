@@ -3,7 +3,7 @@ import { Box, Text, useInput, type Key } from 'ink';
 import type { AppError, AuthError, ProviderName, Result } from '@git-wizzard/shared';
 import { activeAuth, createAdapter, DEFAULT_MODELS, defaultAuthDeps, type ActiveAuth } from '#auth/flow.js';
 import { configPath, deleteConfig, saveConfig } from '#auth/config.js';
-import type { ProviderConfig } from '#auth/provider-adapter.js';
+import type { ProviderAdapter, ProviderConfig } from '#auth/provider-adapter.js';
 import { maskKey } from '#commands/auth.js';
 import { renderError } from '#errors.js';
 import { Spinner } from '#ui/components/Spinner.js';
@@ -76,7 +76,7 @@ export function Auth({ onBack }: { onBack: () => void }): ReactElement {
           : { kind: 'model', draft, models: [], initial, notice: `Couldn't list models; type the name.\n${message}` },
       );
     createAdapter({ ...draft, model: initial })
-      .listModels()
+      .then((adapter: ProviderAdapter) => adapter.listModels())
       .then((listed: Result<string[], AppError>) =>
         listed.ok ? setPhase({ kind: 'model', draft, models: listed.value, initial }) : failed(renderError(listed.error)),
       )

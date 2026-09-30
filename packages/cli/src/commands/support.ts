@@ -2,13 +2,15 @@ import { InvalidArgumentError, Option } from 'commander';
 import { generationHintSchema, type AppError } from '@git-wizzard/shared';
 import { resolveConfiguredAdapter } from '#auth/flow.js';
 import { renderError } from '#errors.js';
-import { connectClient, type GitWizzardClient } from '#mcp/client.js';
+import type { GitWizzardClient } from '#mcp/client.js';
 
 /**
  * Spawn the server-backed client, run `use`, and always close. Credentials are
  * resolved only if a tool samples, so git-only commands work without any setup.
  */
 export async function withClient(use: (client: GitWizzardClient) => Promise<void>): Promise<void> {
+  // Loaded here, not at the top: the MCP SDK is heavy and --help, auth, hook never connect.
+  const { connectClient } = await import('#mcp/client.js');
   const connected = await connectClient(resolveConfiguredAdapter, { cwd: process.cwd() });
   if (!connected.ok) {
     printError(connected.error);
