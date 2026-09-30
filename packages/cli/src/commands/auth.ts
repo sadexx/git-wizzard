@@ -1,6 +1,7 @@
 import type { Command } from 'commander';
+import { authError } from '@git-wizzard/shared';
 import { activeAuth, defaultAuthDeps, readEnvConfig, runAuthFlow } from '#auth/flow.js';
-import { configPath, deleteConfig } from '#auth/config.js';
+import { configPath, deleteConfig, loadConfig, saveConfig } from '#auth/config.js';
 import { printError } from '#commands/support.js';
 
 export function registerAuthCommand(program: Command): void {
@@ -35,6 +36,31 @@ export function registerAuthCommand(program: Command): void {
       );
       if (savedIgnored) {
         process.stdout.write(`Note: saved config at ${configPath()} is ignored while environment credentials are set.\n`);
+      }
+    });
+
+  auth
+    .command('model <name>')
+    .description('Change the model of the saved setup, keeping its API key')
+    .action(async (name: string) => {
+      const loaded = await loadConfig();
+      if (!loaded.ok) {
+        printError(loaded.error);
+        return;
+      }
+      if (loaded.value === null) {
+        printError(authError('missing_credentials', 'No saved setup to change'));
+        return;
+      }
+      const saved = await saveConfig({ ...loaded.value, model: name.trim() });
+      if (!saved.ok) {
+        printError(saved.error);
+        return;
+      }
+      process.stdout.write(`Model set to ${name.trim()} for ${loaded.value.provider}.\n`);
+      const fromEnv = readEnvConfig(defaultAuthDeps().env);
+      if (fromEnv.ok && fromEnv.value !== null) {
+        process.stdout.write('Environment credentials are set and take precedence; use GIT_WIZZARD_MODEL there.\n');
       }
     });
 

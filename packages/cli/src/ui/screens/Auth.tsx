@@ -16,6 +16,7 @@ type Phase =
   | { kind: 'provider' }
   | { kind: 'model'; provider: ProviderName }
   | { kind: 'key'; provider: ProviderName; model: string }
+  | { kind: 'change-model'; config: ProviderConfig }
   | { kind: 'validating'; config: ProviderConfig }
   | { kind: 'invalid'; config: ProviderConfig; message: string };
 
@@ -119,6 +120,20 @@ export function Auth({ onBack }: { onBack: () => void }): ReactElement {
       </Screen>
     );
   }
+  if (phase.kind === 'change-model') {
+    return (
+      <Screen title="Auth · model" hints={[]}>
+        <TextInput
+          key="change-model"
+          label={`Model for ${phase.config.provider} (keeps the saved key)`}
+          initial={phase.config.model}
+          validate={(value: string) => (value === '' ? 'Enter a model name.' : undefined)}
+          onSubmit={(model: string) => save({ ...phase.config, model })}
+          onCancel={() => overview()}
+        />
+      </Screen>
+    );
+  }
   if (phase.kind === 'validating') {
     return (
       <Screen title="Auth" hints={[]}>
@@ -158,7 +173,12 @@ export function Auth({ onBack }: { onBack: () => void }): ReactElement {
   }
   const missing = !auth.ok && auth.error.reason === 'missing_credentials';
   const hasSaved = auth.ok ? auth.value.source === 'config' || auth.value.savedIgnored : auth.error.reason === 'config_read_failed';
+  // Only a saved setup can change its model here; environment credentials take GIT_WIZZARD_MODEL.
+  const savedConfig = auth.ok && auth.value.source === 'config' ? auth.value.config : undefined;
   const actions: ReadonlyArray<[string, string | undefined, () => void]> = [
+    ...(savedConfig !== undefined
+      ? [['Change model…', 'keep the saved key', () => setPhase({ kind: 'change-model', config: savedConfig })] as [string, string, () => void]]
+      : []),
     [auth.ok ? 'Set up a different provider…' : 'Set up a provider…', 'provider, model, API key', () => setPhase({ kind: 'provider' })],
     ...(hasSaved ? [['Log out', 'delete the saved credentials', logout] as [string, string, () => void]] : []),
     ['Back', undefined, onBack],
@@ -175,7 +195,7 @@ export function Auth({ onBack }: { onBack: () => void }): ReactElement {
       ) : null}
       <Box marginTop={1}>
         <SelectList
-          key={`${String(auth.ok)}-${String(hasSaved)}`}
+          key={`${String(auth.ok)}-${String(hasSaved)}-${String(savedConfig !== undefined)}`}
           items={actions.map(([label, description]: [string, string | undefined, () => void]) =>
             description === undefined ? { label } : { label, description },
           )}

@@ -51,7 +51,7 @@ Run `gitwizz` with no arguments for the interactive menu.
 
 | Command | What it does |
 | --- | --- |
-| `gitwizz` | Interactive UI with the same options as the commands: commit (staged or all tracked, hint, edit in your git editor, regenerate, and **Choose files…** to tick files in or out of the index with `space`, new files included), branch (type, hint, your own name), pull request (base, hint), status, a scrollable diff, the git hook, and auth (set up, status, log out). The header shows the provider and model in use. Keys: ↑/↓ or number keys to pick, `enter` choose, `esc` back, `q` quit. |
+| `gitwizz` | Interactive UI with the same options as the commands: commit (staged or all tracked, hint, edit in your git editor, regenerate, and **Choose files…** to tick files in or out of the index with `space`, new files included), branch (type, hint, your own name), pull request (base, hint), status, a scrollable diff, the git hook, and auth (set up, change model, status, log out). The header shows the provider and model in use. Keys: ↑/↓ or number keys to pick, `enter` choose, `esc` back, `q` quit. |
 | `gitwizz status` | Current branch, upstream, ahead/behind, and changed files. |
 | `gitwizz diff [--staged]` | Unstaged (default) or staged changes with per-file line counts. |
 | `gitwizz commit [-a] [--hint <text>] [-y \| --dry-run]` | Generate a commit message from **staged** changes (with `-a`, all changes to tracked files, like `git commit -a`; nothing is staged unless you confirm) in the style of your recent commits (falling back to Conventional Commits), then confirm, edit, regenerate, or abort before committing. |
@@ -60,6 +60,7 @@ Run `gitwizz` with no arguments for the interactive menu.
 | `gitwizz hook install` / `uninstall` | Add (or remove) a `prepare-commit-msg` hook so a plain `git commit` opens the editor with an AI draft. |
 | `gitwizz auth [--no-validate]` | Choose a provider and model, enter an API key, and save it. |
 | `gitwizz auth status` | Show the provider, model, masked key, and source (environment or saved config) that the AI commands will use. Exits 1 when nothing is set up. No network. |
+| `gitwizz auth model <name>` | Change the model of the saved setup, keeping its API key. No re-authentication, no network. |
 | `gitwizz auth logout` | Delete the saved credentials. Environment variables are not affected. |
 
 Every command acts on the repository in the current directory. `--help` works on the program and on each command. Output is colored in a terminal and plain when piped; set `NO_COLOR=1` to turn colors off. While the model works, a spinner with elapsed seconds shows on stderr (terminal only).
