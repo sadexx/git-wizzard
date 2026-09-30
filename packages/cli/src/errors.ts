@@ -61,6 +61,8 @@ function errorHint(error: AppError): string | undefined {
           return 'Add one with "git remote add origin <url>", or push once with "git push -u <remote> <branch>".';
         case 'push_rejected':
           return 'Pull their commits first ("git pull"), then push again.';
+        case 'gh_not_found':
+          return 'Install it from https://cli.github.com, then run "gh auth login".';
         default:
           return undefined;
       }

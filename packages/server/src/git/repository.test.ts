@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { GitRepository } from '#git/repository.js';
@@ -125,6 +125,38 @@ test('push sets an upstream on first push, counts commits later, and never force
   git('commit', '-q', '--allow-empty', '-m', 'ours');
   const rejected = await repo.push();
   assert.equal(!rejected.ok && rejected.error.kind === 'GitError' && rejected.error.reason, 'push_rejected');
+});
+
+test('createPullRequest pushes an unpushed branch, then hands gh the title, body, and GitHub base name', async (t) => {
+  const { dir, git } = await tempRepo();
+  const remote = await mkdtemp(join(tmpdir(), 'git-wizzard-remote-'));
+  execFileSync('git', ['init', '-q', '--bare', '-b', 'main', remote]);
+  git('remote', 'add', 'origin', remote);
+  git('commit', '-q', '--allow-empty', '-m', 'init');
+  git('push', '-q', '-u', 'origin', 'main');
+  git('checkout', '-q', '-b', 'feature');
+  git('commit', '-q', '--allow-empty', '-m', 'work');
+
+  // A stand-in gh that records its arguments, one per line, and prints a PR URL like the real one.
+  const bin = await mkdtemp(join(tmpdir(), 'git-wizzard-bin-'));
+  const argsFile = join(bin, 'args');
+  await writeFile(join(bin, 'gh'), `#!/bin/sh\nprintf '%s\\n' "$@" > '${argsFile}'\necho https://github.com/o/r/pull/7\n`, { mode: 0o755 });
+  const path = process.env['PATH'];
+  process.env['PATH'] = `${bin}:${path ?? ''}`;
+  t.after(() => {
+    process.env['PATH'] = path;
+  });
+
+  const repo = await open(dir);
+  assert.deepEqual(await repo.createPullRequest('-dash title', 'why\nand how', 'origin/main'), {
+    ok: true,
+    value: { url: 'https://github.com/o/r/pull/7', pushed: true },
+  });
+  assert.equal(await readFile(argsFile, 'utf8'), 'pr\ncreate\n--title=-dash title\n--body=why\nand how\n--base=main\n');
+  assert.match(execFileSync('git', ['branch', '-r'], { cwd: dir, encoding: 'utf8' }), /origin\/feature/);
+
+  const again = await repo.createPullRequest('t', '', 'main');
+  assert.equal(again.ok && again.value.pushed, false);
 });
 
 test('defaultBase prefers origin/HEAD, falls back to main, and is undefined before any commit', async () => {

@@ -12,6 +12,7 @@ import { registerCreateBranchTool } from '#tools/create-branch.js';
 import { registerPrDescriptionTool } from '#tools/pr-description.js';
 import { registerStageFilesTool } from '#tools/stage-files.js';
 import { registerPushTool } from '#tools/push.js';
+import { registerCreatePullRequestTool } from '#tools/create-pull-request.js';
 
 export function createServer(): McpServer {
   const { version } = createRequire(import.meta.url)('../package.json') as { version: string };
@@ -25,6 +26,7 @@ export function createServer(): McpServer {
   registerPrDescriptionTool(server);
   registerStageFilesTool(server);
   registerPushTool(server);
+  registerCreatePullRequestTool(server);
   return server;
 }
 

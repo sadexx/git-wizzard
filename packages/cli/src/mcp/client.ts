@@ -5,6 +5,7 @@ import { CreateMessageRequestSchema, type CallToolResult } from '@modelcontextpr
 import {
   createBranchOutputSchema,
   createCommitOutputSchema,
+  createPullRequestOutputSchema,
   err,
   fromWireError,
   generateCommitMessageOutputSchema,
@@ -22,6 +23,7 @@ import {
   type BranchType,
   type CommitResult,
   type CreateBranchOutput,
+  type CreatePullRequestOutput,
   type GenerateCommitMessageOutput,
   type GeneratePrDescriptionOutput,
   type GitDiff,
@@ -72,6 +74,12 @@ export interface GitWizzardClient {
     repoPath?: string;
   }): Promise<Result<GitStatus, ClientError>>;
   push(repoPath?: string): Promise<Result<PushResult, ClientError>>;
+  createPullRequest(options: {
+    title: string;
+    body: string;
+    base: string;
+    repoPath?: string;
+  }): Promise<Result<CreatePullRequestOutput, ClientError>>;
   close(): Promise<void>;
 }
 
@@ -210,6 +218,19 @@ class StdioGitWizzardClient implements GitWizzardClient {
   public async push(repoPath?: string): Promise<Result<PushResult, ClientError>> {
     const raw = await this.rawCall('push', repoPath !== undefined ? { repoPath } : {});
     return raw.ok ? parseWithSchema(pushOutputSchema, raw.value) : raw;
+  }
+
+  public async createPullRequest(options: {
+    title: string;
+    body: string;
+    base: string;
+    repoPath?: string;
+  }): Promise<Result<CreatePullRequestOutput, ClientError>> {
+    const args: Record<string, unknown> = { title: options.title, body: options.body, base: options.base };
+    if (options.repoPath !== undefined) args['repoPath'] = options.repoPath;
+
+    const raw = await this.rawCall('create_pull_request', args);
+    return raw.ok ? parseWithSchema(createPullRequestOutputSchema, raw.value) : raw;
   }
 
   public async close(): Promise<void> {

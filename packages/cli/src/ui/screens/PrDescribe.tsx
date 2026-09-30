@@ -8,13 +8,13 @@ import { SelectList } from '#ui/components/SelectList.js';
 import { TextInput } from '#ui/components/TextInput.js';
 import { ErrorView, Options, Proposal, Screen } from '#ui/components/Screen.js';
 import { hintLabel, validateBase, validateHint } from '#ui/inputs.js';
-import { Push } from '#ui/screens/Push.js';
+import { OpenPr } from '#ui/screens/OpenPr.js';
 
-type Phase = { kind: 'view' } | { kind: 'hint' } | { kind: 'base' } | { kind: 'push' };
+type Phase = { kind: 'view' } | { kind: 'hint' } | { kind: 'base' } | { kind: 'open' };
 
 const LIST_HINTS = ['↑/↓ select', 'enter choose', 'esc back'];
 
-/** Everything `gitwizz pr` does: --base, --hint, regenerate. Read-only; save with `gitwizz pr > pr.md`. */
+/** Everything `gitwizz pr` does: --base, --hint, regenerate; plus opening the PR on GitHub via gh. */
 export function PrDescribe({ client, onBack }: { client: GitWizzardClient; onBack: () => void }): ReactElement {
   const [base, setBase] = useState<string | undefined>(undefined);
   const [hint, setHint] = useState<string | undefined>(undefined);
@@ -75,7 +75,10 @@ export function PrDescribe({ client, onBack }: { client: GitWizzardClient; onBac
       </Screen>
     );
   }
-  if (phase.kind === 'push') return <Push client={client} onBack={view} />;
+  if (phase.kind === 'open' && state.status === 'success') {
+    const { title, body, base: target } = state.data;
+    return <OpenPr client={client} title={title} body={body} base={target} onBack={view} />;
+  }
   if (state.status === 'loading') {
     return (
       <Screen title="Pull request" hints={['esc back']}>
@@ -88,10 +91,12 @@ export function PrDescribe({ client, onBack }: { client: GitWizzardClient; onBac
   }
 
   const actions: ReadonlyArray<[string, string | undefined, () => void]> = [
+    ...(state.status === 'success'
+      ? [['Open PR…', 'gh pr create, pushing first if needed', () => setPhase({ kind: 'open' })] as [string, string, () => void]]
+      : []),
     [state.status === 'error' ? 'Retry' : 'Regenerate', undefined, reload],
     ['Change base…', 'default: origin’s default branch, else main/master', () => setPhase({ kind: 'base' })],
     [hintLabel(hint), 'tell the model what matters', () => setPhase({ kind: 'hint' })],
-    ['Push…', 'the PR needs this branch on the remote', () => setPhase({ kind: 'push' })],
     ['Back', undefined, onBack],
   ];
   return (

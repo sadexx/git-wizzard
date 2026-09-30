@@ -11,6 +11,7 @@ export const toolNameSchema = z.enum([
   'generate_pr_description',
   'stage_files',
   'push',
+  'create_pull_request',
 ]);
 export type ToolName = z.infer<typeof toolNameSchema>;
 
@@ -134,3 +135,20 @@ export const pushInputSchema = z.object({ repoPath: z.string().min(1).optional()
 export type PushInput = z.infer<typeof pushInputSchema>;
 export const pushOutputSchema = pushResultSchema;
 export type PushOutput = z.infer<typeof pushOutputSchema>;
+
+export const createPullRequestInputSchema = z
+  .object({
+    repoPath: z.string().min(1).optional(),
+    title: z.string().min(1),
+    body: z.string(),
+    /** Branch the PR targets, local ("main") or remote-tracking ("origin/main"). */
+    base: z
+      .string()
+      .min(1)
+      .regex(/^[^-]/, 'must not start with "-"'),
+  })
+  .strict();
+export type CreatePullRequestInput = z.infer<typeof createPullRequestInputSchema>;
+/** `pushed` is true when the branch had to be pushed first. */
+export const createPullRequestOutputSchema = z.object({ url: z.string().min(1), pushed: z.boolean() }).strict();
+export type CreatePullRequestOutput = z.infer<typeof createPullRequestOutputSchema>;

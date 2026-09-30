@@ -1,3 +1,5 @@
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { simpleGit, type SimpleGit } from 'simple-git';
 import {
   type Result,
@@ -19,8 +21,12 @@ import {
   type PushResult,
   pushResultSchema,
   causeMessage,
+  type CreatePullRequestOutput,
+  createPullRequestOutputSchema,
 } from '@git-wizzard/shared';
 import { parseStatus, parseNumstat } from '#git/parse.js';
+
+const execFileAsync = promisify(execFile);
 
 export type RepoError = GitError | ValidationError;
 
@@ -177,7 +183,7 @@ export class GitRepository {
 
     let remote: string | undefined;
     if (upstream === undefined) {
-      const remotes = (await this.git.raw(['remote']).catch(() => '')).split('\n').filter((name: string) => name !== '');
+      const remotes = await this.remotes();
       remote = remotes.includes('origin') ? 'origin' : remotes.length === 1 ? remotes[0] : undefined;
       if (remote === undefined) {
         return err(
@@ -201,6 +207,46 @@ export class GitRepository {
       upstream: after.value.upstream ?? upstream ?? `${remote}/${branch}`,
       ...(upstream !== undefined ? { commits: ahead } : {}),
     });
+  }
+
+  /** Push first when the remote lacks the branch or some of its commits, then `gh pr create`; returns the PR URL. */
+  public async createPullRequest(
+    title: string,
+    body: string,
+    base: string,
+  ): Promise<Result<CreatePullRequestOutput, RepoError>> {
+    // Look for gh before pushing: a missing gh must not leave a push behind.
+    const gh = await execFileAsync('gh', ['--version']).catch((cause: NodeJS.ErrnoException) => cause);
+    if (gh instanceof Error && gh.code === 'ENOENT') return err(gitError('gh_not_found', 'The GitHub CLI (gh) is not installed'));
+
+    const status = await this.status();
+    if (!status.ok) return status;
+    const pushed = status.value.upstream === undefined || status.value.ahead > 0;
+    if (pushed) {
+      const result = await this.push();
+      if (!result.ok) return result;
+    }
+
+    // gh wants the branch name on GitHub: "origin/main" -> "main".
+    const remote = (await this.remotes()).find((name: string) => base.startsWith(`${name}/`));
+    const target = remote === undefined ? base : base.slice(remote.length + 1);
+    let stdout: string;
+    try {
+      // `--flag=value` so a title starting with "-" stays a value. stdin is a pipe, so gh never prompts.
+      ({ stdout } = await execFileAsync('gh', ['pr', 'create', `--title=${title}`, `--body=${body}`, `--base=${target}`], {
+        cwd: this.baseDir,
+        env: { ...process.env, GH_PROMPT_DISABLED: '1' },
+      }));
+    } catch (cause) {
+      // Only gh's stderr: the error message would repeat the whole command line, body included.
+      return err(gitError('command_failed', 'gh pr create failed', (cause as { stderr?: string }).stderr));
+    }
+    const url = stdout.trim().split('\n').pop() ?? '';
+    return parseWithSchema(createPullRequestOutputSchema, { url, pushed });
+  }
+
+  private async remotes(): Promise<string[]> {
+    return (await this.git.raw(['remote']).catch(() => '')).split('\n').filter((name: string) => name !== '');
   }
 
   public async createBranch(name: string): Promise<Result<CreateBranchOutput, RepoError>> {
