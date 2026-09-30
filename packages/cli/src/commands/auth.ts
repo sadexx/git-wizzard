@@ -1,4 +1,4 @@
-import type { Command } from 'commander';
+import { InvalidArgumentError, type Command } from 'commander';
 import { authError } from '@git-wizzard/shared';
 import { activeAuth, defaultAuthDeps, readEnvConfig, runAuthFlow } from '#auth/flow.js';
 import { configPath, deleteConfig, loadConfig, saveConfig } from '#auth/config.js';
@@ -40,8 +40,12 @@ export function registerAuthCommand(program: Command): void {
     });
 
   auth
-    .command('model <name>')
+    .command('model')
     .description('Change the model of the saved setup, keeping its API key')
+    .argument('<name>', 'Model id, e.g. gemini-3.6-flash', (value: string) => {
+      if (value.trim() === '') throw new InvalidArgumentError('Enter a model name.');
+      return value.trim();
+    })
     .action(async (name: string) => {
       const loaded = await loadConfig();
       if (!loaded.ok) {
@@ -52,12 +56,12 @@ export function registerAuthCommand(program: Command): void {
         printError(authError('missing_credentials', 'No saved setup to change'));
         return;
       }
-      const saved = await saveConfig({ ...loaded.value, model: name.trim() });
+      const saved = await saveConfig({ ...loaded.value, model: name });
       if (!saved.ok) {
         printError(saved.error);
         return;
       }
-      process.stdout.write(`Model set to ${name.trim()} for ${loaded.value.provider}.\n`);
+      process.stdout.write(`Model set to ${name} for ${loaded.value.provider}.\n`);
       const fromEnv = readEnvConfig(defaultAuthDeps().env);
       if (fromEnv.ok && fromEnv.value !== null) {
         process.stdout.write('Environment credentials are set and take precedence; use GIT_WIZZARD_MODEL there.\n');
