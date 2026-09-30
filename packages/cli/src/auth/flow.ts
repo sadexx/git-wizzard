@@ -14,11 +14,13 @@ import {
 import type { ProviderAdapter, ProviderConfig } from '#auth/provider-adapter.js';
 import { OpenAiAdapter } from '#auth/providers/openai.js';
 import { GeminiAdapter } from '#auth/providers/gemini.js';
+import { AnthropicAdapter } from '#auth/providers/anthropic.js';
 import { loadConfig, saveConfig } from '#auth/config.js';
 
 export const DEFAULT_MODELS: Record<ProviderName, string> = {
   openai: 'gpt-5.4-mini',
   gemini: 'gemini-3.6-flash',
+  anthropic: 'claude-opus-5-5',
 };
 
 export interface AuthDeps {
@@ -33,6 +35,7 @@ export interface AuthEnv {
   readonly provider: string | undefined;
   readonly openaiKey: string | undefined;
   readonly geminiKey: string | undefined;
+  readonly anthropicKey: string | undefined;
   readonly model: string | undefined;
   readonly isTty: boolean;
 }
@@ -59,20 +62,27 @@ export function readEnvConfig(authEnv: AuthEnv): Result<ProviderConfig | null, A
     }
     provider = parsed.data;
   } else {
-    const hasOpenai = authEnv.openaiKey !== undefined && authEnv.openaiKey !== '';
-    const hasGemini = authEnv.geminiKey !== undefined && authEnv.geminiKey !== '';
-    if (hasOpenai && !hasGemini) provider = 'openai';
-    else if (hasGemini && !hasOpenai) provider = 'gemini';
-    else return ok(null);
+    // Exactly one key set picks its provider; none or several needs GIT_WIZZARD_PROVIDER.
+    const withKey = providerNameSchema.options.filter((name: ProviderName) => {
+      const key = envKey(authEnv, name);
+      return key !== undefined && key !== '';
+    });
+    const [only] = withKey;
+    if (withKey.length !== 1 || only === undefined) return ok(null);
+    provider = only;
   }
 
-  const apiKey = provider === 'openai' ? authEnv.openaiKey : authEnv.geminiKey;
+  const apiKey = envKey(authEnv, provider);
   if (apiKey === undefined || apiKey === '') {
     return err(authError('missing_credentials', `Provider "${provider}" selected but its API key is not set`));
   }
 
   const model = authEnv.model !== undefined && authEnv.model !== '' ? authEnv.model : DEFAULT_MODELS[provider];
   return ok({ provider, apiKey, model });
+}
+
+function envKey(authEnv: AuthEnv, provider: ProviderName): string | undefined {
+  return { openai: authEnv.openaiKey, gemini: authEnv.geminiKey, anthropic: authEnv.anthropicKey }[provider];
 }
 
 /**
@@ -157,7 +167,7 @@ async function interactive(
   deps: AuthDeps,
   validate: boolean,
 ): Promise<Result<ProviderAdapter, AuthError | ProviderError>> {
-  const provider = await deps.prompter.select('Select a provider', ['openai', 'gemini']);
+  const provider = await deps.prompter.select('Select a provider', providerNameSchema.options);
   const model = await deps.prompter.text('Model', DEFAULT_MODELS[provider]);
 
   const maxAttempts = 3;
@@ -185,7 +195,14 @@ async function interactive(
 // ---- Real dependency wiring (thin I/O; not unit-tested) ----
 
 export function createAdapter(config: ProviderConfig): ProviderAdapter {
-  return config.provider === 'openai' ? new OpenAiAdapter(config) : new GeminiAdapter(config);
+  switch (config.provider) {
+    case 'openai':
+      return new OpenAiAdapter(config);
+    case 'gemini':
+      return new GeminiAdapter(config);
+    case 'anthropic':
+      return new AnthropicAdapter(config);
+  }
 }
 
 export function defaultAuthDeps(): AuthDeps {
@@ -205,6 +222,7 @@ function readProcessEnv(): AuthEnv {
     provider: processEnv['GIT_WIZZARD_PROVIDER'],
     openaiKey: processEnv['OPENAI_API_KEY'],
     geminiKey: processEnv['GEMINI_API_KEY'] ?? processEnv['GOOGLE_API_KEY'],
+    anthropicKey: processEnv['ANTHROPIC_API_KEY'],
     model: processEnv['GIT_WIZZARD_MODEL'],
     isTty: stdin.isTTY === true && stdout.isTTY === true,
   };

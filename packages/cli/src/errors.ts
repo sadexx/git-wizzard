@@ -3,7 +3,7 @@ import { causeMessage, type AppError, type ValidationIssue } from '@git-wizzard/
 import { configPath } from '#auth/config.js';
 
 const KEY_HINT =
-  'Run "gitwizz auth" to update your API key (or fix OPENAI_API_KEY / GEMINI_API_KEY if set in your environment).';
+  'Run "gitwizz auth" to update your API key (or fix OPENAI_API_KEY / GEMINI_API_KEY / ANTHROPIC_API_KEY if set in your environment).';
 
 /**
  * Multi-line, user-facing rendering: what went wrong, the underlying detail
@@ -31,13 +31,13 @@ function errorHint(error: AppError): string | undefined {
     case 'AuthError':
       switch (error.reason) {
         case 'missing_credentials':
-          return 'Run "gitwizz auth" to set up a provider, or set OPENAI_API_KEY or GEMINI_API_KEY.';
+          return 'Run "gitwizz auth" to set up a provider, or set OPENAI_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY.';
         case 'no_terminal':
-          return 'Run it in a terminal, or set OPENAI_API_KEY or GEMINI_API_KEY in the environment instead.';
+          return 'Run it in a terminal, or set OPENAI_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY in the environment instead.';
         case 'invalid_api_key':
           return KEY_HINT;
         case 'unsupported_provider':
-          return 'Set GIT_WIZZARD_PROVIDER to "openai" or "gemini".';
+          return 'Set GIT_WIZZARD_PROVIDER to "openai", "gemini", or "anthropic".';
         case 'config_read_failed':
           return `Fix or delete ${configPath()}, then run "gitwizz auth".`;
         case 'config_write_failed':

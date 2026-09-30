@@ -19,6 +19,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.129.0",
     "@git-wizzard/server": "*",
     "@git-wizzard/shared": "*",
     "@google/genai": "^2.10.0",

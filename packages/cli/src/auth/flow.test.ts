@@ -8,6 +8,7 @@ const emptyEnv: AuthEnv = {
   provider: undefined,
   openaiKey: undefined,
   geminiKey: undefined,
+  anthropicKey: undefined,
   model: undefined,
   isTty: false,
 };
@@ -51,6 +52,18 @@ test('readEnvConfig infers provider from a single key', () => {
 test('readEnvConfig returns null when ambiguous', () => {
   const result = readEnvConfig({ ...emptyEnv, openaiKey: 'a', geminiKey: 'b' });
   assert.deepEqual(result, { ok: true, value: null });
+  assert.deepEqual(readEnvConfig({ ...emptyEnv, geminiKey: 'b', anthropicKey: 'c' }), { ok: true, value: null });
+});
+
+test('readEnvConfig picks Anthropic from ANTHROPIC_API_KEY alone, or by name among several keys', () => {
+  assert.deepEqual(readEnvConfig({ ...emptyEnv, anthropicKey: 'c' }), {
+    ok: true,
+    value: { provider: 'anthropic', apiKey: 'c', model: 'claude-opus-5-5' },
+  });
+  assert.deepEqual(readEnvConfig({ ...emptyEnv, provider: 'anthropic', openaiKey: 'a', anthropicKey: 'c' }), {
+    ok: true,
+    value: { provider: 'anthropic', apiKey: 'c', model: 'claude-opus-5-5' },
+  });
 });
 
 test('readEnvConfig rejects an unknown provider', () => {

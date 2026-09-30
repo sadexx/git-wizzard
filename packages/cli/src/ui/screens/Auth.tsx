@@ -24,6 +24,7 @@ const LIST_HINTS = ['↑/↓ select', 'enter choose', 'esc back'];
 const PROVIDERS: ReadonlyArray<{ name: ProviderName; label: string }> = [
   { name: 'openai', label: 'OpenAI' },
   { name: 'gemini', label: 'Google Gemini' },
+  { name: 'anthropic', label: 'Anthropic Claude' },
 ];
 
 /** `gitwizz auth` (setup, with or without validation), `auth status`, and `auth logout`. */
@@ -111,7 +112,7 @@ export function Auth({ onBack }: { onBack: () => void }): ReactElement {
         {/* Distinct keys: going straight from the model input to this one must not carry its text over. */}
         <TextInput
           key="api-key"
-          label={`${phase.provider === 'openai' ? 'OpenAI' : 'Gemini'} API key (checked with the provider, then saved with 0600 permissions)`}
+          label={`${PROVIDERS.find(({ name }: { name: ProviderName }) => name === phase.provider)?.label ?? phase.provider} API key (checked with the provider, then saved with 0600 permissions)`}
           mask
           validate={(value: string) => (value === '' ? 'Enter an API key.' : undefined)}
           onSubmit={(apiKey: string) => validateAndSave({ provider: phase.provider, model: phase.model, apiKey })}

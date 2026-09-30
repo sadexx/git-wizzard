@@ -1,6 +1,6 @@
 # git-wizzard
 
-AI-assisted git from your terminal: write commit messages and name branches from your actual changes, using OpenAI or Google Gemini.
+AI-assisted git from your terminal: write commit messages and name branches from your actual changes, using OpenAI, Google Gemini, or Anthropic Claude.
 
 ![gitwizz interactive menu](docs/screenshot.png)
 
@@ -23,7 +23,7 @@ Created commit 3f9a1c2e on main: feat(auth): resolve provider credentials lazily
 
 - Node.js 22 or newer
 - git
-- An OpenAI or Gemini API key (for `commit`, `branch`, and `pr`)
+- An OpenAI, Gemini, or Anthropic API key (for `commit`, `branch`, and `pr`)
 
 ## Install
 
@@ -98,13 +98,14 @@ Credentials come from the first source that provides them:
 1. **Environment** (never written to disk)
    - `OPENAI_API_KEY`: use OpenAI
    - `GEMINI_API_KEY` or `GOOGLE_API_KEY`: use Gemini
-   - `GIT_WIZZARD_PROVIDER`: `openai` or `gemini`; required to choose when both keys are set
+   - `ANTHROPIC_API_KEY`: use Claude
+   - `GIT_WIZZARD_PROVIDER`: `openai`, `gemini`, or `anthropic`; required to choose when more than one key is set
    - `GIT_WIZZARD_MODEL`: override the model used with the key above
 2. **Saved config** at `~/.git-wizzard/config.json`, written by `gitwizz auth` with `0600` permissions.
 
 Run `gitwizz auth status` to see which source wins.
 
-Default models: `gpt-5.4-mini` (OpenAI) and `gemini-3.6-flash` (Gemini).
+Default models: `gpt-5.4-mini` (OpenAI), `gemini-3.6-flash` (Gemini), and `claude-opus-5-5` (Claude). With Claude, a request the model's safety checks decline is retried on another Claude model Anthropic picks (server-side fallback) on the models that support it.
 
 > **Privacy:** `commit`, `branch`, and `pr` send the changed file names and the diff to your chosen provider. The diff is capped at about 6,000 characters, shared across files so one large file can't hide the rest; lockfiles and minified or source-map files are named but their diffs are left out. `commit` also sends the current branch name and the subjects of your last 10 commits so it can match your style; `pr` sends the branch names and the messages of the commits it describes. `status` and `diff` never leave your machine.
 
