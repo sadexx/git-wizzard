@@ -63,6 +63,8 @@ function errorHint(error: AppError): string | undefined {
           return 'Pull their commits first ("git pull"), then push again.';
         case 'gh_not_found':
           return 'Install it from https://cli.github.com, then run "gh auth login".';
+        case 'gh_not_authenticated':
+          return 'Run "gh auth login", then try again.';
         default:
           return undefined;
       }

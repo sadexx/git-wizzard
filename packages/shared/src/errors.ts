@@ -37,6 +37,7 @@ export const gitErrorReasonSchema = z.enum([
   'no_remote',
   'push_rejected',
   'gh_not_found',
+  'gh_not_authenticated',
 ]);
 export type GitErrorReason = z.infer<typeof gitErrorReasonSchema>;
 

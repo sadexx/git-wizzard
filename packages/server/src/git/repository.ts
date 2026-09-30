@@ -104,9 +104,12 @@ export class GitRepository {
   private async diffOf(scope: string[], staged: boolean): Promise<Result<GitDiff, RepoError>> {
     let numstat: string;
     let patch: string;
+    // The user's config must not reshape the patch: color.ui=always adds ANSI codes, diff.external swaps the
+    // format, and diff.noprefix/mnemonicPrefix change the `a/` `b/` headers that budgetPatch parses.
+    const plain = ['--no-color', '--no-ext-diff', '--src-prefix=a/', '--dst-prefix=b/'];
     try {
-      numstat = await this.git.raw(['diff', '--numstat', ...scope]);
-      patch = await this.git.raw(['diff', ...scope]);
+      numstat = await this.git.raw(['diff', '--numstat', ...plain, ...scope]);
+      patch = await this.git.raw(['diff', ...plain, ...scope]);
     } catch (cause) {
       return err(gitError('command_failed', 'git diff failed', cause));
     }
@@ -215,9 +218,15 @@ export class GitRepository {
     body: string,
     base: string,
   ): Promise<Result<CreatePullRequestOutput, RepoError>> {
-    // Look for gh before pushing: a missing gh must not leave a push behind.
-    const gh = await execFileAsync('gh', ['--version']).catch((cause: NodeJS.ErrnoException) => cause);
-    if (gh instanceof Error && gh.code === 'ENOENT') return err(gitError('gh_not_found', 'The GitHub CLI (gh) is not installed'));
+    // Check gh before pushing: a missing or logged-out gh must not leave a push behind.
+    const gh = await execFileAsync('gh', ['auth', 'status'], { cwd: this.baseDir }).catch(
+      (cause: NodeJS.ErrnoException & { stderr?: string }) => cause,
+    );
+    if (gh instanceof Error) {
+      return gh.code === 'ENOENT'
+        ? err(gitError('gh_not_found', 'The GitHub CLI (gh) is not installed'))
+        : err(gitError('gh_not_authenticated', 'The GitHub CLI (gh) is not logged in', gh.stderr));
+    }
 
     const status = await this.status();
     if (!status.ok) return status;

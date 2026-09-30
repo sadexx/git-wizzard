@@ -159,6 +159,47 @@ test('createPullRequest pushes an unpushed branch, then hands gh the title, body
   assert.equal(again.ok && again.value.pushed, false);
 });
 
+test('createPullRequest stops before pushing when gh is not logged in', async (t) => {
+  const { dir, git } = await tempRepo();
+  const remote = await mkdtemp(join(tmpdir(), 'git-wizzard-remote-'));
+  execFileSync('git', ['init', '-q', '--bare', '-b', 'main', remote]);
+  git('remote', 'add', 'origin', remote);
+  git('commit', '-q', '--allow-empty', '-m', 'init');
+  git('checkout', '-q', '-b', 'feature');
+
+  // A stand-in gh whose `auth status` fails the way the real one does when logged out.
+  const bin = await mkdtemp(join(tmpdir(), 'git-wizzard-bin-'));
+  await writeFile(join(bin, 'gh'), `#!/bin/sh\n[ "$1" = auth ] && { echo 'not logged in' >&2; exit 1; }\nexit 0\n`, { mode: 0o755 });
+  const path = process.env['PATH'];
+  process.env['PATH'] = `${bin}:${path ?? ''}`;
+  t.after(() => {
+    process.env['PATH'] = path;
+  });
+
+  const result = await (await open(dir)).createPullRequest('t', '', 'main');
+  assert.equal(!result.ok && result.error.kind === 'GitError' && result.error.reason, 'gh_not_authenticated');
+  assert.equal(execFileSync('git', ['ls-remote', '--heads', remote], { encoding: 'utf8' }), '');
+});
+
+test('diff ignores user config that reshapes the patch', async () => {
+  const { dir, git } = await tempRepo();
+  const external = join(dir, 'external.sh');
+  await writeFile(external, '#!/bin/sh\necho EXTERNAL\n', { mode: 0o755 });
+  git('config', 'color.ui', 'always');
+  git('config', 'diff.noprefix', 'true');
+  git('config', 'diff.mnemonicPrefix', 'true');
+  git('config', 'diff.external', external);
+  await writeFile(join(dir, 'a.txt'), 'one\n');
+  git('add', 'a.txt');
+
+  const diff = await (await open(dir)).diff(true);
+  assert.equal(diff.ok, true);
+  if (!diff.ok) return;
+  assert.match(diff.value.patch, /^diff --git a\/a\.txt b\/a\.txt\n/);
+  assert.doesNotMatch(diff.value.patch, /\x1b|EXTERNAL/);
+  assert.deepEqual(diff.value.files.map((file: { path: string }) => file.path), ['a.txt']);
+});
+
 test('defaultBase prefers origin/HEAD, falls back to main, and is undefined before any commit', async () => {
   const { dir, git } = await tempRepo();
   const repo = await open(dir);
