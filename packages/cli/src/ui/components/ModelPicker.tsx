@@ -1,10 +1,11 @@
 import { useState, type ReactElement } from 'react';
-import { Box, Text, useInput, useStdout, type Key } from 'ink';
+import { Box, Text, useInput, useWindowSize, type Key } from 'ink';
 import { CHROME_ROWS } from '#ui/components/ScrollView.js';
-import { rankModels } from '#ui/inputs.js';
+import { FieldBox } from '#ui/components/TextInput.js';
+import { editLine, rankModels, type Line } from '#ui/inputs.js';
 
-/** Rows the label, filter box, and hints take above and below the list. */
-const PICKER_ROWS = 7;
+/** Rows the label, filter box, and key hints take besides the list. */
+const PICKER_ROWS = 5;
 
 /**
  * Type to filter `models`, ↑/↓ to move, enter to take the highlighted one. Whatever you typed is
@@ -24,46 +25,36 @@ export function ModelPicker({
   onSubmit: (model: string) => void;
   onCancel: () => void;
 }): ReactElement {
-  const [query, setQuery] = useState(models.length === 0 ? initial : '');
-  const [cursor, setCursor] = useState(Math.max(0, models.indexOf(initial)));
-  const { stdout } = useStdout();
+  const [line, setLine] = useState<Line>(() => {
+    const query = models.length === 0 ? initial : '';
+    return { value: query, cursor: [...query].length };
+  });
+  // The highlighted row belongs to the text it was picked under; new text starts at the top again.
+  const [pick, setPick] = useState({ value: line.value, index: Math.max(0, models.indexOf(initial)) });
+  const { rows: windowRows } = useWindowSize();
 
-  const typed = query.trim();
+  const typed = line.value.trim();
   const rows = [...(typed !== '' && !models.includes(typed) ? [typed] : []), ...rankModels(models, typed)];
-  const at = Math.min(cursor, Math.max(0, rows.length - 1));
+  const at = Math.min(pick.value === line.value ? pick.index : 0, Math.max(0, rows.length - 1));
 
   useInput((input: string, key: Key) => {
     if (key.escape) onCancel();
     else if (key.return) {
       const picked = rows[at];
       if (picked !== undefined) onSubmit(picked);
-    } else if (key.upArrow) setCursor((at - 1 + rows.length) % Math.max(1, rows.length));
-    else if (key.downArrow) setCursor((at + 1) % Math.max(1, rows.length));
-    else if (key.backspace || key.delete) {
-      setQuery((previous: string) => previous.slice(0, -1));
-      setCursor(0);
-    } else if (key.ctrl && input === 'u') {
-      setQuery('');
-      setCursor(0);
-    } else if (input !== '' && !key.ctrl && !key.meta) {
-      setQuery((previous: string) => previous + input.replace(/[\x00-\x1f\x7f]/g, ''));
-      setCursor(0);
-    }
+    } else if (key.upArrow) setPick({ value: line.value, index: (at - 1 + rows.length) % Math.max(1, rows.length) });
+    else if (key.downArrow) setPick({ value: line.value, index: (at + 1) % Math.max(1, rows.length) });
+    // Keys can arrive faster than renders: edit the latest line, not this render's.
+    else setLine((previous: Line) => editLine(previous, input, key) ?? previous);
   });
 
   // A window of rows that follows the cursor, so long lists (OpenAI has dozens) fit the terminal.
-  const height = Math.max(3, (stdout.rows || 24) - CHROME_ROWS - PICKER_ROWS);
+  const height = Math.max(3, windowRows - CHROME_ROWS - PICKER_ROWS);
   const start = Math.min(Math.max(0, at - height + 1), Math.max(0, rows.length - height));
   return (
     <Box flexDirection="column">
       <Text>{label}</Text>
-      <Box borderStyle="round" borderDimColor paddingX={1}>
-        <Text>
-          <Text dimColor>{'> '}</Text>
-          {query === '' ? <Text dimColor>{models.length > 0 ? 'type to filter' : 'model name'}</Text> : query}
-          <Text inverse> </Text>
-        </Text>
-      </Box>
+      <FieldBox line={line} placeholder={models.length > 0 ? 'type to filter' : 'model name'} />
       {rows.slice(start, start + height).map((model: string, i: number) => (
         <Text key={model} wrap="truncate-end">
           <Text bold={start + i === at}>{`${start + i === at ? '❯' : ' '} ${model}`}</Text>

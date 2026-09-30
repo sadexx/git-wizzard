@@ -12,10 +12,32 @@ const WIZARD = String.raw`
  /|\/|\_|
 /_|__|_\|`.slice(1);
 
-/** Rounded banner: the wizard, then name, version, and model in use, and where you are (path · branch · upstream · changes). */
-export function Header({ status, model }: { status: GitStatus | undefined; model: string | undefined }): ReactElement {
+/**
+ * Rounded banner: the wizard, then name, version, and model in use, and where you are (path · branch ·
+ * upstream · changes). `compact` says the same in one line, leaving the rows to the screen below.
+ */
+export function Header({
+  status,
+  model,
+  compact = false,
+}: {
+  status: GitStatus | undefined;
+  model: string | undefined;
+  compact?: boolean;
+}): ReactElement {
+  const where = [tildePath(process.cwd()), ...(status !== undefined ? repoFacts(status) : [])].join(' · ');
+  if (compact) {
+    return (
+      <Box flexShrink={0}>
+        <Text wrap="truncate-end">
+          <Text bold>✻ git-wizzard</Text>
+          <Text dimColor>{` v${VERSION}${model !== undefined ? ` · ${model}` : ''} · ${where}`}</Text>
+        </Text>
+      </Box>
+    );
+  }
   return (
-    <Box borderStyle="round" borderDimColor paddingX={1} alignItems="center">
+    <Box borderStyle="round" borderDimColor paddingX={1} alignItems="center" flexShrink={0}>
       <Box flexShrink={0} marginRight={2}>
         <Text>{WIZARD}</Text>
       </Box>
@@ -29,7 +51,7 @@ export function Header({ status, model }: { status: GitStatus | undefined; model
           </Text>
         </Text>
         <Text dimColor wrap="truncate-middle">
-          {[tildePath(process.cwd()), ...(status !== undefined ? repoFacts(status) : [])].join(' · ')}
+          {where}
         </Text>
       </Box>
     </Box>

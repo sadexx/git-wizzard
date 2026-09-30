@@ -107,23 +107,27 @@ export function PrDescribe({ client, onBack }: { client: GitWizzardClient; onBac
           : 'Pull request'
       }
       hints={[...LIST_HINTS, ...(state.status === 'success' ? ['save it with: gitwizz pr > pr.md'] : [])]}
+      scroll={state.status !== 'success'}
     >
-      {options}
-      <Box marginY={1} flexDirection="column">
+      {/* A long description scrolls inside its frame; the rest keeps its rows. */}
+      <Box flexShrink={0}>{options}</Box>
+      <Box marginY={1} flexDirection="column" flexShrink={1} minHeight={4}>
         {state.status === 'success' ? (
           <Proposal text={`${state.data.title}\n\n${state.data.body}`} />
         ) : (
           <ErrorView message={state.message} />
         )}
       </Box>
-      <SelectList
-        key={state.status}
-        items={actions.map(([label, description]: [string, string | undefined, () => void]) =>
-          description === undefined ? { label } : { label, description },
-        )}
-        onSelect={(index: number) => actions[index]?.[2]()}
-        onCancel={onBack}
-      />
+      <Box flexShrink={0}>
+        <SelectList
+          key={state.status}
+          items={actions.map(([label, description]: [string, string | undefined, () => void]) =>
+            description === undefined ? { label } : { label, description },
+          )}
+          onSelect={(index: number) => actions[index]?.[2]()}
+          onCancel={onBack}
+        />
+      </Box>
     </Screen>
   );
 }

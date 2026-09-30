@@ -1,5 +1,5 @@
 import { useCallback, useState, type ReactElement } from 'react';
-import { Box, Text, useInput, useStdout, type Key } from 'ink';
+import { Box, Text, useInput, useWindowSize, type Key } from 'ink';
 import type { GitFileChange, GitStatus, Result } from '@git-wizzard/shared';
 import { renderError } from '#errors.js';
 import type { ClientError, GitWizzardClient } from '#mcp/client.js';
@@ -28,7 +28,7 @@ export function StageFiles({
   const [phase, setPhase] = useState<{ kind: 'pick' } | { kind: 'applying' } | { kind: 'failed'; message: string }>({
     kind: 'pick',
   });
-  const { stdout } = useStdout();
+  const { rows } = useWindowSize();
 
   // ponytail: conflicted files stay out; resolving a merge is git's job, not a checkbox.
   const files = state.status === 'success' ? state.data.files.filter((file: GitFileChange) => file.index !== 'conflicted') : [];
@@ -96,7 +96,7 @@ export function StageFiles({
   }
 
   // Keep the cursor row on screen: a window of rows that slides with it.
-  const height = Math.max(5, (stdout.rows || 24) - CHROME_ROWS);
+  const height = Math.max(5, rows - CHROME_ROWS);
   const start = Math.min(Math.max(0, cursor - height + 1), Math.max(0, files.length - height));
   const width = Math.max(...files.map((file: GitFileChange) => file.path.length)) + 2;
   return (

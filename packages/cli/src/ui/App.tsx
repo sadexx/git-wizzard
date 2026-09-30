@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactElement } from 'react';
-import { Box, render } from 'ink';
+import { Box, render, useWindowSize } from 'ink';
 import type { AuthError, GitStatus, Result } from '@git-wizzard/shared';
 import { activeAuth, defaultAuthDeps, resolveConfiguredAdapter, type ActiveAuth } from '#auth/flow.js';
 import { renderError } from '#errors.js';
@@ -41,9 +41,11 @@ export function App({ client }: { client: GitWizzardClient }): ReactElement {
       .catch(() => setModel(undefined));
   }, [client, screen]);
 
+  // Exactly the terminal's height, so nothing scrolls the header away; screens fit themselves inside.
+  const { rows } = useWindowSize();
   return (
-    <Box flexDirection="column">
-      <Header status={status} model={model} />
+    <Box flexDirection="column" height={rows} overflow="hidden">
+      <Header status={status} model={model} compact={screen !== 'menu'} />
       {body(screen, client, back, open, menuIndex(lastTarget))}
     </Box>
   );

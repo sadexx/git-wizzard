@@ -185,21 +185,26 @@ export function CommitGenerate({ client, onBack }: { client: GitWizzardClient; o
     ['Cancel', undefined, onBack],
   ];
   return (
-    <Screen title="Commit" hints={LIST_HINTS}>
-      {options}
-      <Box marginY={1} flexDirection="column">
+    <Screen title="Commit" hints={LIST_HINTS} scroll={false}>
+      {/* A long message scrolls inside its frame; the rest keeps its rows. */}
+      <Box flexShrink={0}>{options}</Box>
+      <Box marginY={1} flexDirection="column" flexShrink={1} minHeight={4}>
         <Proposal text={message} />
-        {edited !== undefined ? <Text dimColor>edited by you</Text> : null}
-        {notice !== undefined ? <Text bold>✗ {notice}</Text> : null}
+        <Box flexDirection="column" flexShrink={0}>
+          {edited !== undefined ? <Text dimColor>edited by you</Text> : null}
+          {notice !== undefined ? <Text bold>✗ {notice}</Text> : null}
+        </Box>
       </Box>
-      <SelectList
-        key="review"
-        items={actions.map(([label, description]: [string, string | undefined, () => void]) =>
-          description === undefined ? { label } : { label, description },
-        )}
-        onSelect={(index: number) => actions[index]?.[2]()}
-        onCancel={onBack}
-      />
+      <Box flexShrink={0}>
+        <SelectList
+          key="review"
+          items={actions.map(([label, description]: [string, string | undefined, () => void]) =>
+            description === undefined ? { label } : { label, description },
+          )}
+          onSelect={(index: number) => actions[index]?.[2]()}
+          onCancel={onBack}
+        />
+      </Box>
     </Screen>
   );
 }

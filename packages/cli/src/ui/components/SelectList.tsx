@@ -35,7 +35,7 @@ export function SelectList({
   return (
     <Box flexDirection="column">
       {items.map((item: SelectItem, i: number) => (
-        <Text key={`${i}-${item.label}`}>
+        <Text key={`${i}-${item.label}`} wrap="truncate-end">
           <Text bold={i === index}>
             {`${i === index ? '❯' : ' '} ${i + 1}. ${item.label}`.padEnd(item.description !== undefined ? width : 0)}
           </Text>

@@ -28,7 +28,7 @@ export function Menu({
   });
 
   return (
-    <Box flexDirection="column" marginTop={1}>
+    <Box flexDirection="column" marginTop={1} flexShrink={0}>
       <SelectList
         items={ITEMS}
         initial={initial}
