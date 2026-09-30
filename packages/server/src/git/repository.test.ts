@@ -181,6 +181,41 @@ test('createPullRequest stops before pushing when gh is not logged in', async (t
   assert.equal(execFileSync('git', ['ls-remote', '--heads', remote], { encoding: 'utf8' }), '');
 });
 
+test('git failures surface as command_failed with git\'s own words: a hook, a lost remote, gh itself', async (t) => {
+  const { dir, git } = await tempRepo();
+  git('config', 'user.name', 'Test');
+  git('config', 'user.email', 'test@example.com');
+  git('commit', '-q', '--allow-empty', '-m', 'init');
+  const repo = await open(dir);
+
+  // A pre-commit hook that refuses: the commit fails and git's message comes along.
+  await writeFile(join(dir, '.git', 'hooks', 'pre-commit'), '#!/bin/sh\necho "lint failed" >&2\nexit 1\n', { mode: 0o755 });
+  await writeFile(join(dir, 'a.txt'), 'a\n');
+  git('add', 'a.txt');
+  const refused = await repo.createCommit('feat: a');
+  assert.equal(!refused.ok && refused.error.kind === 'GitError' && refused.error.reason, 'command_failed');
+  assert.match(!refused.ok ? String(refused.error.cause) : '', /lint failed/);
+
+  // A remote that no longer exists: not "rejected", just failed.
+  git('remote', 'add', 'origin', join(dir, 'gone.git'));
+  const lost = await repo.push();
+  assert.equal(!lost.ok && lost.error.kind === 'GitError' && lost.error.reason, 'command_failed');
+
+  const remote = await mkdtemp(join(tmpdir(), 'git-wizzard-remote-'));
+  execFileSync('git', ['init', '-q', '--bare', '-b', 'main', remote]);
+  git('remote', 'set-url', 'origin', remote);
+  git('push', '-q', '-u', 'origin', 'main');
+  const bin = await mkdtemp(join(tmpdir(), 'git-wizzard-bin-'));
+  await writeFile(join(bin, 'gh'), '#!/bin/sh\n[ "$1" = auth ] && exit 0\necho "a pull request already exists" >&2\nexit 1\n', { mode: 0o755 });
+  const path = process.env['PATH'];
+  process.env['PATH'] = `${bin}:${path ?? ''}`;
+  t.after(() => {
+    process.env['PATH'] = path;
+  });
+  const duplicate = await repo.createPullRequest('t', '', 'main');
+  assert.deepEqual(!duplicate.ok && [duplicate.error.message, duplicate.error.cause], ['gh pr create failed', 'a pull request already exists\n']);
+});
+
 test('diff ignores user config that reshapes the patch', async () => {
   const { dir, git } = await tempRepo();
   const external = join(dir, 'external.sh');

@@ -30,6 +30,26 @@ test('renderError skips detail that repeats the message and omits hint when none
   assert.equal(renderError(providerError('request_failed', 'boom', new Error('boom'))), 'error: boom');
 });
 
+test('every git failure a user can fix comes with a hint', () => {
+  const hints: ReadonlyArray<[Parameters<typeof gitError>[0], RegExp]> = [
+    ['not_a_repository', /inside a git repository/],
+    ['no_changes', /uncommitted changes/],
+    ['merge_conflict', /Resolve the conflicts/],
+    ['base_not_found', /--base <branch>/],
+    ['no_commits', /Commit your work first/],
+    ['no_remote', /git remote add origin/],
+    ['push_rejected', /git pull/],
+    ['gh_not_found', /cli\.github\.com/],
+    ['gh_not_authenticated', /gh auth login/],
+  ];
+  for (const [reason, hint] of hints) assert.match(renderError(gitError(reason, 'x')), new RegExp(`^hint: .*${hint.source}`, 'm'), reason);
+  assert.equal(renderError(gitError('command_failed', 'x')), 'error: x');
+  assert.match(renderError(providerError('rate_limited', 'x')), /^hint: Wait a moment/m);
+  assert.match(renderError(authError('unsupported_provider', 'x')), /GIT_WIZZARD_PROVIDER/);
+  assert.match(renderError(authError('config_read_failed', 'x')), /^hint: Fix or delete .*config\.json/m);
+  assert.match(renderError(authError('config_write_failed', 'x')), /^hint: Check that .* is writable/m);
+});
+
 test('renderError lists validation issues as detail', () => {
   const error = {
     kind: 'ValidationError',

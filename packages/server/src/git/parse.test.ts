@@ -34,6 +34,26 @@ test('parseStatus reads branch header and file entries', () => {
   assert.deepEqual(status.files[3], { path: 'untracked.txt', index: 'unmodified', workingTree: 'untracked' });
 });
 
+test('parseStatus maps copied, conflicted, type-changed, and ignored entries', () => {
+  const status = parseStatus(
+    [
+      '# branch.head main',
+      '2 C. N... 100644 100644 100644 aaa bbb C100 copy.ts\torig.ts',
+      '1 UU N... 100644 100644 100644 ccc ddd both.ts',
+      'u UU N... 100644 100644 100644 100644 eee fff ggg merged.ts',
+      '1 .T N... 100644 120000 120000 hhh iii link',
+      '! build/',
+    ].join('\n'),
+  );
+  assert.deepEqual(status.files, [
+    { path: 'copy.ts', index: 'copied', workingTree: 'unmodified', originalPath: 'orig.ts' },
+    { path: 'both.ts', index: 'conflicted', workingTree: 'conflicted' },
+    { path: 'merged.ts', index: 'conflicted', workingTree: 'conflicted' },
+    { path: 'link', index: 'unmodified', workingTree: 'modified' },
+    { path: 'build/', index: 'unmodified', workingTree: 'ignored' },
+  ]);
+});
+
 test('parseStatus reports clean tree with no upstream', () => {
   const status = parseStatus('# branch.head main\n');
   assert.equal(status.isClean, true);

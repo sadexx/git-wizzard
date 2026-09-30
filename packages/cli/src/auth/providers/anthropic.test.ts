@@ -19,8 +19,14 @@ test('normalizeAnthropicResponse joins text blocks, skipping thinking, and maps 
     ok: true,
     value: { text: 'feat: add x', model: 'claude-opus-5-5', finishReason: 'stop' },
   });
-  const cut = normalizeAnthropicResponse(reply([text], 'max_tokens'));
-  assert.equal(cut.ok && cut.value.finishReason, 'length');
+  const finish = (reason: Reply['stop_reason']): unknown => {
+    const result = normalizeAnthropicResponse(reply([text], reason));
+    return result.ok && result.value.finishReason;
+  };
+  assert.equal(finish('max_tokens'), 'length');
+  assert.equal(finish('model_context_window_exceeded'), 'length');
+  assert.equal(finish('stop_sequence'), 'stop');
+  assert.equal(finish('pause_turn'), 'other');
 });
 
 test('normalizeAnthropicResponse turns a refusal or a text-less reply into an error', () => {

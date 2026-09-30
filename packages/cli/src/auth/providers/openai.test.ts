@@ -1,6 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeOpenAiResponse } from '#auth/providers/openai.js';
+import { extractHttpStatus } from '#auth/provider-adapter.js';
+
+test('extractHttpStatus reads a numeric status off SDK errors and nothing else', () => {
+  assert.equal(extractHttpStatus({ status: 429 }), 429);
+  assert.equal(extractHttpStatus({ status: '429' }), undefined);
+  assert.equal(extractHttpStatus(new Error('no status')), undefined);
+  assert.equal(extractHttpStatus('thrown string'), undefined);
+  assert.equal(extractHttpStatus(null), undefined);
+});
 
 test('normalizeOpenAiResponse maps content and finish_reason', () => {
   const result = normalizeOpenAiResponse(
@@ -32,6 +41,15 @@ test('normalizeOpenAiResponse maps unknown finish_reason to other and falls back
   );
   assert.equal(result.ok, true);
   if (result.ok) assert.deepEqual(result.value, { text: 'x', model: 'fb', finishReason: 'other' });
+});
+
+test('normalizeOpenAiResponse maps a cut-off or filtered answer', () => {
+  const finish = (reason: string): unknown => {
+    const result = normalizeOpenAiResponse({ choices: [{ message: { content: 'x' }, finish_reason: reason }] }, 'fb');
+    return result.ok && result.value.finishReason;
+  };
+  assert.equal(finish('length'), 'length');
+  assert.equal(finish('content_filter'), 'content_filter');
 });
 
 test('normalizeOpenAiResponse errors on empty content', () => {

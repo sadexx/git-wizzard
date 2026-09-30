@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import { ok, type AuthError, type PersistedConfig, type Result } from '@git-wizzard/shared';
-import { activeAuth, readEnvConfig, runAuthFlow, type AuthDeps, type AuthEnv, type Prompter } from '#auth/flow.js';
+import { activeAuth, createAdapter, readEnvConfig, runAuthFlow, type AuthDeps, type AuthEnv, type Prompter } from '#auth/flow.js';
 import type { ProviderAdapter, ProviderConfig } from '#auth/provider-adapter.js';
 
 const emptyEnv: AuthEnv = {
@@ -123,6 +123,27 @@ test('runAuthFlow prompts and persists interactively', async () => {
   assert.equal(saved.length, 1);
   const [savedConfig] = saved;
   assert.equal(savedConfig?.apiKey, 'interactive-key');
+});
+
+test('readEnvConfig: a provider named without its key is an error, not a silent fallback', () => {
+  const result = readEnvConfig({ ...emptyEnv, provider: 'anthropic', openaiKey: 'sk' });
+  assert.equal(!result.ok && result.error.reason, 'missing_credentials');
+});
+
+test('runAuthFlow reports environment credentials that fail validation', async () => {
+  const rejecting = (config: ProviderConfig): ProviderAdapter => ({
+    ...fakeAdapter(config),
+    validateKey: async () => ({ ok: false, error: { kind: 'AuthError', reason: 'invalid_api_key', message: 'rejected' } }),
+  });
+  const result = await runAuthFlow(deps({ env: { ...emptyEnv, openaiKey: 'sk' }, createAdapter: rejecting }));
+  assert.equal(!result.ok && result.error.reason, 'invalid_api_key');
+});
+
+test('createAdapter picks the adapter for each provider; custom speaks the OpenAI API', () => {
+  for (const provider of ['openai', 'gemini', 'anthropic', 'custom'] as const) {
+    const adapter = createAdapter({ provider, apiKey: 'k', model: 'm', ...(provider === 'custom' ? { baseUrl: 'http://localhost:1/v1' } : {}) });
+    assert.deepEqual([adapter.provider, adapter.model], [provider, 'm']);
+  }
 });
 
 test('activeAuth reports env credentials and flags a shadowed saved config', async () => {

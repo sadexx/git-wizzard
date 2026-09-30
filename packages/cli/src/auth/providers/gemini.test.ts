@@ -39,6 +39,13 @@ test('normalizeGeminiResponse falls back to candidate parts and safety maps to c
   if (result.ok) assert.deepEqual(result.value, { text: 'ab', model: 'fb', finishReason: 'content_filter' });
 });
 
+test('normalizeGeminiResponse maps other finish reasons, or none, to other', () => {
+  for (const candidates of [[{ finishReason: 'OTHER' }], []]) {
+    const result = normalizeGeminiResponse({ text: 'x', candidates }, 'fb');
+    assert.equal(result.ok && result.value.finishReason, 'other');
+  }
+});
+
 test('normalizeGeminiResponse errors when no text is produced', () => {
   const result = normalizeGeminiResponse({ candidates: [{ finishReason: 'STOP' }] }, 'fb');
   assert.equal(result.ok, false);
