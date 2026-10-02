@@ -74,8 +74,9 @@ test('Commit: edit in the git editor replaces the message; a failing editor says
   const app = renderUi(t, screen.tree);
   await app.waitFor('generated 1');
 
+  // With a body, "Commit subject only" is item 2 and Edit is 3; the one-line edit drops it again.
   process.env['GIT_EDITOR'] = `printf 'hand written\\n' >`;
-  await app.press('2');
+  await app.press('3');
   await app.waitFor('edited by you');
   await app.waitFor('hand written');
 
@@ -99,6 +100,24 @@ test('Commit: a failed commit shows the error; enter goes back', async (t) => {
   await app.waitFor('pre-commit hook said no');
   await app.press(KEY.enter);
   await eventually(() => screen.backs() === 1, 'back');
+});
+
+test('Commit: subject only drops the body, and is offered only when there is one', async (t) => {
+  const messages: string[] = [];
+  const createCommit = async (input: { message: string }): Promise<Result<CommitResult, AppError>> => {
+    messages.push(input.message);
+    return ok({ sha: '1234567890ab', branch: 'main', summary: input.message });
+  };
+  const screen = commitScreen(() => message('feat: x', 'a body'), { createCommit });
+  const app = renderUi(t, screen.tree);
+  await app.waitFor('a body');
+  await app.press('2');
+  await app.waitFor('Created commit');
+  assert.deepEqual(messages, ['feat: x']);
+
+  const short = renderUi(t, commitScreen(() => message('feat: y'), { createCommit }).tree);
+  await short.waitFor('feat: y');
+  assert.doesNotMatch(short.frame(), /Commit subject only/);
 });
 
 test('Commit: a thrown commit error is shown too', async (t) => {

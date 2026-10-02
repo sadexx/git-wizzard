@@ -142,6 +142,8 @@ describe('gitwizz', { concurrency: true }, () => {
     const dry = await box.gitwizz(['commit', '--dry-run', '--hint', 'first file']);
     assert.deepEqual(dry, { code: 0, stdout: 'feat: add a\n\nBecause it was missing.\n', stderr: '' });
     assert.ok(asked(/Author's note on intent: first file/));
+    const short = await box.gitwizz(['commit', '--dry-run', '--subject-only']);
+    assert.deepEqual(short, { code: 0, stdout: 'feat: add a\n', stderr: '' });
 
     const yes = await box.gitwizz(['commit', '-y']);
     assert.match(yes.stdout, /^Created commit [0-9a-f]{8} on main: feat: add a\n$/);

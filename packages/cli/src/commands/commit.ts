@@ -17,9 +17,10 @@ export function registerCommitCommand(program: Command): void {
     .description('Generate a commit message from staged changes and create the commit')
     .option('-a, --all', 'Include all changes to tracked files, like "git commit -a" (new files still need git add)')
     .option('-y, --yes', 'Commit with the generated message without asking')
+    .option('--subject-only', 'Use only the subject line of the generated message, without the body')
     .addOption(new Option('--dry-run', 'Print the generated message and exit without committing').conflicts('yes'))
     .addOption(hintOption())
-    .action(async (options: ConfirmOptions & { hint?: string; all?: boolean }) => {
+    .action(async (options: ConfirmOptions & { hint?: string; all?: boolean; subjectOnly?: boolean }) => {
       const mode = requireConfirmMode(options);
       if (mode === undefined) return;
 
@@ -32,7 +33,9 @@ export function registerCommitCommand(program: Command): void {
           return;
         }
 
-        const { message } = generated.value;
+        const pick = ({ subject, message }: { subject: string; message: string }): string =>
+          options.subjectOnly === true ? subject : message;
+        const message = pick(generated.value);
         if (mode === 'dry-run') {
           process.stdout.write(`${message}\n`);
           return;
@@ -40,7 +43,7 @@ export function registerCommitCommand(program: Command): void {
 
         const regenerate: Regenerate = async () => {
           const again = await generate('Regenerating commit message');
-          if (again.ok) return again.value.message;
+          if (again.ok) return pick(again.value);
           printRecoverableError(again.error);
           return undefined;
         };

@@ -175,8 +175,13 @@ export function CommitGenerate({ client, onBack }: { client: GitWizzardClient; o
   }
 
   const message = edited ?? state.data.message;
+  // First line, so it also works on a hand-edited message.
+  const subject = message.split('\n')[0] ?? message;
+  const subjectOnly: Array<[string, string | undefined, () => void]> =
+    subject === message ? [] : [['Commit subject only', 'drop the body', () => commit(subject)]];
   const actions: ReadonlyArray<[string, string | undefined, () => void]> = [
     ['Commit', undefined, () => commit(message)],
+    ...subjectOnly,
     ['Edit', 'in your git editor', () => edit(message)],
     ['Regenerate', undefined, regenerate],
     ['Choose files…', 'stage or unstage', () => setPhase({ kind: 'stage' })],
